@@ -1,5 +1,5 @@
 {
-  "name": "@Couchbase-Ecosystem/cblite",
+  "name": "@Couchbase-Ecosystem/cblite-js",
   "version": "0.1.0",
   "description": "The core Typescript API definition module for CBLite for mobile platforms",
   "main": "index.ts",
