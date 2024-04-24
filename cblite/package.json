@@ -16,7 +16,7 @@
     "couchbase-lite"
   ],
   "publishConfig": {
-    "@Couchbase-Ecosystem:registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com"
   },
   "author": "Developer Ecosystem/Experience @ Couchbase",
   "license": "Apache-2.0"
