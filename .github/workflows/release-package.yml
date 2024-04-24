@@ -27,6 +27,11 @@ jobs:
         with:
           node-version: 18
           registry-url: https://npm.pkg.github.com/
+      - name: Create .npmrc
+        run: |
+            echo "@Couchbase-Ecosystem:registry=https://npm.pkg.github.com/" > .npmrc
+            echo "//npm.pkg.github.com/:_authToken=${{secrets.GITHUB_TOKEN}}" >> .npmrc
+        working-directory: cblite
       - run: npm ci
         working-directory: cblite
       - run: npm publish
