@@ -1,0 +1,22 @@
+{
+  "name": "cblite-tests",
+  "version": "1.0.0",
+  "description": "A testing library for cblite",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "cblite": "file:../cblite/",
+    "chai": "^5.1.0",
+    "typescript": "^5.4.2"
+  },
+  "keywords": [
+    "couchbase",
+    "couchbase-lite",
+    "test"
+  ],
+  "author": "Developer Integrations @ Couchbase",
+  "license": "Apache-2.0"
+}
