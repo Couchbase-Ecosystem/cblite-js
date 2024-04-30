@@ -2,6 +2,7 @@ import { Database } from './database';
 import { Parameter } from './parameter';
 import {ICoreEngine} from "../coretypes";
 import {EngineLocator} from "./engine-locator";
+import {Result, ResultSet} from "./result";
 
 /*
 export class QueryChange {
@@ -43,23 +44,24 @@ export class Query {
   removeChangeListener(token: ListenerToken) {}
   */
 
-  execute(): Promise<{ [key: string]: any }> {
-    const queryResults = this._engine.database_QueryExecute({
+  async execute(): Promise<ResultSet> {
+    const queryResults = await this._engine.query_Execute({
       name: this._database.getName(),
       query: this._queryString,
       parameters: this._parameters
     });
-
-    return queryResults;
+    const data = queryResults["data"];
+    return JSON.parse(data);
   }
 
-  explain(): Promise<{ [key: string]: any }> {
-    const queryResults = this._engine.database_QueryExplain({
+  async explain(): Promise<ResultSet> {
+    const queryResults = await this._engine.query_Explain({
       name: this._database.getName(),
       query: this._queryString,
       parameters: this._parameters
     });
-    return queryResults;
+    const data = queryResults["data"];
+    return JSON.parse(data);
   }
 
   getDatabase() {

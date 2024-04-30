@@ -594,9 +594,9 @@ export interface ICoreEngine {
   // Query 
   //**********************
 
-  database_QueryExecute(args: QueryExecuteArgs): Promise<Result>;
+  query_Execute(args: QueryExecuteArgs): Promise<Result>;
 
-  database_QueryExplain(args: QueryExecuteArgs): Promise<Result>;
+  query_Explain(args: QueryExecuteArgs): Promise<Result>;
  
 
   //***********

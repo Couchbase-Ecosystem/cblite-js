@@ -1,11 +1,10 @@
 {
-  "name": "@Couchbase-Ecosystem/cblite-js",
-  "version": "0.1.0",
+  "name": "cblite",
+  "version": "0.1.1",
   "description": "The core Typescript API definition module for CBLite for mobile platforms",
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
-    "ci": "tsc",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -15,10 +14,6 @@
     "couchbase",
     "couchbase-lite"
   ],
-  "repository": "https://github.com/Couchbase-Ecosystem/cblite-js.git",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
-  "author": "Developer Ecosystem/Experience @ Couchbase",
+  "author": "Developer Integrations @ Couchbase",
   "license": "Apache-2.0"
 }
