@@ -188,13 +188,27 @@ export class Database {
   }
 
   /**
+   * The default scope name constant
+   *
+   * @property
+   */
+  static defaultScopeName = '_default';
+
+  /**
+   * The default collection name constant
+   *
+   * @property
+   */
+  static defaultCollectionName = '_default';
+
+  /**
    * Get the default Scope.
    *
    * @function
    */
   async defaultScope(): Promise<Scope> {
     const scope = await this._engine.scope_GetDefault({name: this._databaseName});
-    return new Scope(scope.name, this._databaseName);
+    return new Scope(scope.name, this);
   }
 
   /**
@@ -203,8 +217,12 @@ export class Database {
    * @function
    */
   async scope(scopeName: string): Promise<Scope> {
-    const scope = await this._engine.scope_GetScope({name: this._databaseName, scopeName: scopeName} as ScopeArgs);
-    return new Scope(scope.name, this._databaseName);
+    try {
+      const scope = await this._engine.scope_GetScope({name: this._databaseName, scopeName: scopeName} as ScopeArgs);
+      return new Scope(scope.name, this);
+    } catch(error){
+      return undefined;
+    }
   }
 
   /**
@@ -216,7 +234,7 @@ export class Database {
     const results = await this._engine.scope_GetScopes({name: this._databaseName});
     const scopes: Scope[] = [];
     for(const scope of results.scopes) {
-      scopes.push(new Scope(scope.name, this._databaseName));
+      scopes.push(new Scope(scope.name, this));
     }
     return scopes;
   }
@@ -228,8 +246,8 @@ export class Database {
    */
   async defaultCollection(): Promise<Collection> {
     const col = await this._engine.collection_GetDefault({name: this._databaseName});
-    const scope = new Scope(col.scope.name, this._databaseName);
-    return new Collection(col.name, scope);
+    const scope = new Scope(col.scope.name, this);
+    return new Collection(col.name, scope, this);
   }
 
   /**
@@ -237,14 +255,35 @@ export class Database {
    *
    * @function
    */
-  async collection(collectionName: string, scopeName: string): Promise<Collection | null> {
-    const col = await this._engine.collection_GetCollection({
-      name: this._databaseName,
-      collectionName: collectionName,
-      scopeName: scopeName
-    });
-    const scope = new Scope(col.scope.name, this._databaseName);
-    return new Collection(col.name, scope);
+  async collection(collectionName: string):Promise<Collection>;
+  // eslint-disable-next-line no-dupe-class-members
+  async collection(collectionName: string, scope: Scope): Promise<Collection>;
+  // eslint-disable-next-line no-dupe-class-members
+  async collection(collectionName: string, scopeName: string): Promise<Collection>;
+  // eslint-disable-next-line no-dupe-class-members
+  async collection(collectionName: string, scopeOrName?: Scope | string): Promise<Collection | null> {
+    let col:Collection | undefined = undefined;
+    if (typeof scopeOrName === 'string') {
+      col = await this._engine.collection_GetCollection({
+        name: this._databaseName,
+        collectionName: collectionName,
+        scopeName: scopeOrName
+      });
+    } else if (scopeOrName instanceof Scope) {
+      col = await this._engine.collection_GetCollection({
+        name: this._databaseName,
+        collectionName: collectionName,
+        scopeName: scopeOrName.name
+      });
+    } else {
+      col = await this._engine.collection_GetCollection({
+        name: this._databaseName,
+        collectionName: collectionName,
+        scopeName: Database.defaultScopeName
+      });
+    }
+    const scope = new Scope(col.scope.name, this);
+    return new Collection(col.name, scope, this);
   }
 
   /**
@@ -252,11 +291,14 @@ export class Database {
    *
    * @function
    */
+  // @ts-expect-error stupid overloading not working properly in IDE
+  async collections(): Promise<Collection[]>;
+  // eslint-disable-next-line no-dupe-class-members
   async collections(scope: Scope): Promise<Collection[]>;
   // eslint-disable-next-line no-dupe-class-members
   async collections(scope: string): Promise<Collection[]>;
   // eslint-disable-next-line no-dupe-class-members
-  async collections(scopeOrName: Scope | string): Promise<Collection[]> {
+  async collections(scopeOrName: Scope | string | undefined): Promise<Collection[]> {
     const collections: Collection[] = [];
       let colResults: CollectionsResult | undefined = undefined;
       if (typeof scopeOrName === 'string') {
@@ -267,11 +309,14 @@ export class Database {
           scopeName: scopeOrName.name
         });
       } else {
-        throw new Error('Invalid arguments');
+        colResults = await this._engine.collection_GetCollections({
+          name: this._databaseName,
+          scopeName: Database.defaultScopeName,
+        });
       }
       for (const col of colResults.collections) {
-        const scope = new Scope(col.scope.name, this._databaseName);
-        collections.push(new Collection(col.name, scope));
+        const scope = new Scope(col.scope.name, this);
+        collections.push(new Collection(col.name, scope, this));
       }
     return collections;
   }
@@ -281,11 +326,13 @@ export class Database {
    *
    * @function
    */
+  async createCollection(collectionName: string):Promise<Collection>;
+  // eslint-disable-next-line no-dupe-class-members
   async createCollection(collectionName: string, scope: Scope): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
   async createCollection(collectionName: string, scopeName: string): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
-  async createCollection(collectionName: string, scopeOrName: Scope | string): Promise<Collection> {
+  async createCollection(collectionName: string, scopeOrName?: Scope | string): Promise<Collection> {
     let col:Collection | undefined = undefined;
     if (typeof scopeOrName === 'string') {
       col = await this._engine.collection_CreateCollection({
@@ -300,10 +347,14 @@ export class Database {
         scopeName: scopeOrName.name
       });
     } else {
-      throw new Error('Invalid arguments');
+      col = await this._engine.collection_CreateCollection({
+        name: this._databaseName,
+        collectionName: collectionName,
+        scopeName: Database.defaultScopeName
+      });
     }
-    const scope = new Scope(col.scope.name, this._databaseName);
-    return new Collection(col.name, scope);
+    const scope = new Scope(col.scope.name, this);
+    return new Collection(col.name, scope, this);
   }
 
   /**

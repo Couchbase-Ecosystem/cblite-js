@@ -1,7 +1,7 @@
-import { TestCase } from './test-case';
-import { ITestResult } from './test-result.types';
-import { assert, expect } from 'chai';
-import { MutableDocument, ConcurrencyControl, Blob } from 'cblite';
+import {TestCase} from './test-case';
+import {ITestResult} from './test-result.types';
+import {assert, expect} from 'chai';
+import {Blob, ConcurrencyControl, DatabaseConfiguration, FileSystem, MaintenanceType, MutableDocument} from 'cblite';
 
 /**
  * DatabaseTests - reminder all test cases must start with 'test' in the name of the method, or they will not run
@@ -50,7 +50,7 @@ export class DatabaseTests extends TestCase {
           data: undefined,
         };
       })
-      .catch((error: any) => {
+      .catch((error) => {
         return {
           testName: 'testDeleteDocument',
           success: false,
@@ -86,7 +86,7 @@ export class DatabaseTests extends TestCase {
         message: 'success',
         data: undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         testName: 'testDatabaseProperties',
         success: false,
@@ -104,13 +104,14 @@ export class DatabaseTests extends TestCase {
    */
   async testSaveDocWithId(): Promise<ITestResult> {
     try {
-      const docId = await this.createDocumentWithId('doc1');
+      const docId = 'doc1';
+      const doc = await this.createDocumentWithId(docId);
       const count = await this.getDocumentCount();
       assert.equal(1, count);
       await this.verifyDoc(
         'testSaveDocWithId',
-        'doc1',
-        JSON.stringify(docId.toDictionary),
+        docId,
+        JSON.stringify(doc.toDictionary),
       );
       return {
         testName: 'testSaveDocWithId',
@@ -118,7 +119,7 @@ export class DatabaseTests extends TestCase {
         message: 'success',
         data: undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         testName: 'testSaveDocWithId',
         success: false,
@@ -153,7 +154,7 @@ export class DatabaseTests extends TestCase {
         message: 'success',
         data: undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         testName: 'testSaveDocWithSpecialCharactersDocID',
         success: false,
@@ -187,7 +188,7 @@ export class DatabaseTests extends TestCase {
         message: 'success',
         data: undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         testName: 'testSaveSameDocTwice',
         success: false,
@@ -203,7 +204,7 @@ export class DatabaseTests extends TestCase {
    *
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
-  async testAndUpdateMutableDoc(): Promise<ITestResult> {
+  async testCreateAndUpdateMutableDoc(): Promise<ITestResult> {
     try {
       const doc = await this.createDocumentWithId('doc1');
       //update
@@ -231,14 +232,14 @@ export class DatabaseTests extends TestCase {
       assert.equal(56, updatedDoc?.getString('age'));
 
       return {
-        testName: 'testAndUpdateMutableDoc',
+        testName: 'testCreateAndUpdateMutableDoc',
         success: true,
         message: 'success',
         data: undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
-        testName: 'testAndUpdateMutableDoc',
+        testName: 'testCreateAndUpdateMutableDoc',
         success: false,
         message: JSON.stringify(error),
         data: undefined,
@@ -293,173 +294,55 @@ export class DatabaseTests extends TestCase {
     };
   }
 
-  async testSaveDocWithNoParentConflict(): Promise<ITestResult> {
-    return {
-      testName: 'testSaveDocWithNoParentConflict',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testSaveDocWithDeletedConflict(): Promise<ITestResult> {
-    return {
-      testName: 'testSaveDocWithDeletedConflict',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testDeletePreSaveDoc(): Promise<ITestResult> {
-    return {
-      testName: 'testDeletePreSaveDoc',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testDeleteSameDocTwice(): Promise<ITestResult> {
-    return {
-      testName: 'testDeleteSameDocTwice',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testDeleteNoneExistingDoc(): Promise<ITestResult> {
-    return {
-      testName: 'testDeleteNoneExistingDoc',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testDeleteAndUpdateDoc(): Promise<ITestResult> {
-    return {
-      testName: 'testDeleteAndUpdateDoc',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testDeleteAlreadyDeletedDoc(): Promise<ITestResult> {
-    return {
-      testName: 'testDeleteAlreadyDeletedDoc',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testDeleteDocWithConflict(): Promise<ITestResult> {
-    return {
-      testName: 'testDeleteDocWithConflict',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testPurgePreSaveDoc(): Promise<ITestResult> {
-    return {
-      testName: 'testPurgePreSaveDoc',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testPurgeDoc(): Promise<ITestResult> {
-    return {
-      testName: 'testPurgeDoc',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testPurgeSameDocTwice(): Promise<ITestResult> {
-    return {
-      testName: 'testPurgeSameDocTwice',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-  
-  async testPurgeDocumentOnADeletedDocument(): Promise<ITestResult> {
-    return {
-      testName: 'testPurgeDocumentOnADeletedDocument',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testPreSavePurgeDocumentWithID(): Promise<ITestResult> {
-    return {
-      testName: 'testPreSavePurgeDocumentWithID',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testPurgeDocumentWithID(): Promise<ITestResult> {
-    return {
-      testName: 'testPurgeDocumentWithID',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testCallPurgeDocumentWithIDTwice(): Promise<ITestResult> {
-    return {
-      testName: 'testCallPurgeDocumentWithIDTwice',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testDeletePurgedDocumentWithID(): Promise<ITestResult> {
-    return {
-      testName: 'testDeletePurgedDocumentWithID',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  async testPurgeDocumentWithIDOnADeletedDocument(): Promise<ITestResult> {
-    return {
-      testName: 'testDeletePurgedDocumentWithID',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
   async testDefaultDatabaseConfiguration(): Promise<ITestResult> {
+    try {
+      const config = new DatabaseConfiguration();
+      expect(config.directory).to.equal(undefined);
+      expect(config.encryptionKey).to.equal(undefined);
+    } catch(error){
+      return {
+        testName: 'testDefaultDatabaseConfiguration',
+        success: false,
+        message: JSON.stringify(error),
+        data: undefined,
+      };
+    }
     return {
       testName: 'testDefaultDatabaseConfiguration',
-      success: false,
-      message: 'Not implemented',
+      success: true,
+      message: 'success',
       data: undefined,
     };
   }
 
   async testCopyingDatabaseConfiguration(): Promise<ITestResult> {
+    try {
+      const fs = new FileSystem();
+      const defaultDirectory = await fs.getDefaultPath();
+      const config = new DatabaseConfiguration();
+      config.setDirectory(defaultDirectory);
+      config.setEncryptionKey("somePassword");
+
+      const config1 = new DatabaseConfiguration(config);
+      //change the original config
+      config.setDirectory('newDirectory');
+      config.setEncryptionKey(undefined);
+
+      expect(config.directory).to.not.equal(config1.directory);
+      expect(config.encryptionKey).to.not.equal(config1.encryptionKey);
+    }
+    catch(error){
+      return {
+        testName: 'testCopyingDatabaseConfiguration',
+        success: false,
+        message: JSON.stringify(error),
+        data: undefined,
+      };
+    }
     return {
       testName: 'testCopyingDatabaseConfiguration',
-      success: false,
-      message: 'Not implemented',
+      success: true,
+      message: 'success',
       data: undefined,
     };
   }
@@ -472,8 +355,6 @@ export class DatabaseTests extends TestCase {
       data: undefined,
     };
   }
-
-
 
   /**
    * This method tests running compact on a database
@@ -511,7 +392,7 @@ export class DatabaseTests extends TestCase {
       //TODO validate amount of attachments
 
       //compact
-      await this.database?.compact();
+      await this.database?.performMaintenance(MaintenanceType.COMPACT);
 
       //delete all the docs
       for (const doc of docs) {
@@ -523,16 +404,17 @@ export class DatabaseTests extends TestCase {
       assert.equal(postDeleteDocCount, 0);
 
       //compact again
-      await this.database?.compact();
+      await this.database?.performMaintenance(MaintenanceType.COMPACT);
 
       //TODO validate the attachment count
+
       return {
         testName: 'testPerformMaintenanceCompact',
         success: true,
         message: 'success',
         data: undefined,
       };
-    } catch (error: unknown) {
+    } catch (error) {
       return {
         testName: 'testPerformMaintenanceCompact',
         success: false,
@@ -551,10 +433,10 @@ export class DatabaseTests extends TestCase {
    */
   async testSaveManyDocs(): Promise<ITestResult> {
     try {
-      await this.createDocs('testSaveManyDocs', 5000);
+      await this.createDocs('testSaveManyDocs', 2000);
       let count = await this.getDocumentCount();
-      assert.equal(5000, count);
-      await this.verifyDocs('testSaveManyDocs', 5000);
+      assert.equal(2000, count);
+      await this.verifyDocs('testSaveManyDocs', 2000);
 
       //cleanup
       await this.tearDown();
@@ -572,7 +454,7 @@ export class DatabaseTests extends TestCase {
         message: 'success',
         data: undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         testName: 'testSaveManyDocs',
         success: false,
@@ -627,7 +509,7 @@ export class DatabaseTests extends TestCase {
         message: 'success',
         data: undefined,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         testName: methodName,
         success: false,

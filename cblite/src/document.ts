@@ -48,7 +48,7 @@ export class Document {
         key: key,
         collectionName: collection.name,
         scopeName: collection.scope.name,
-        name: collection.scope.databaseName,
+        name: collection.scope.database.getName(),
       });
   }
 
@@ -96,7 +96,7 @@ export class Document {
     return this._get(key);
   }
 
-  getValue(key: string): any {
+  getValue(key: string) {
     return this._get(key);
   }
 

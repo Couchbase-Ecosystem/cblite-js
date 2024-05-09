@@ -26,12 +26,12 @@ export class IndexingTests extends TestCase {
      */
     async testCreateIndex(): Promise<ITestResult> {
         try {
+            const index = IndexBuilder.valueIndex(
+                        ValueIndexItem.property('name'), ValueIndexItem.property('documentType')
+                    );
             await this.collection.createIndex(
                 this.indexName,
-                IndexBuilder
-                    .valueIndex(
-                        ValueIndexItem.property('name'), ValueIndexItem.property('documentType')
-                    )
+                index
             );
             const indexes = await this.collection.indexes();
             expect(indexes).to.have.lengthOf(1);
@@ -82,15 +82,12 @@ export class IndexingTests extends TestCase {
 
             //search the database for the term eiusmod
 
-            const queryString = "SELECT * FROM " + this.dataSource + " WHERE quote MATCH(" + indexName + ", 'eiusmod')";
+            const queryString = `SELECT * FROM ${this.collection.fullName()} WHERE MATCH(${indexName}, 'eiusmod')`;
             const query = this.database.createQuery(queryString);
             const results = await query.execute();
 
-            /*
-            let resultDoc = queryResults[0][this.database.getName()];
-            expect(queryResults).to.have.lengthOf(1);
+            const resultDoc = results[0][this.collection.name];
             expect(resultDoc.quote).to.equal('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat');
-             */
         } catch (error) {
             return {
                 testName: 'testFullTextIndexExpression',

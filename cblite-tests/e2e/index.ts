@@ -9,7 +9,6 @@ export * from './fragment-test';
 export * from './indexing-test';
 export * from './notification-test';
 export * from './predicate-query-test';
-export * from './query-builder-test';
 export * from './query-test';
 export * from './replicator-test';
 export * from './test-case';

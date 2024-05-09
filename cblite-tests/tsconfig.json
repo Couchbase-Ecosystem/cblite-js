@@ -14,7 +14,8 @@
     "pretty": true,
     "sourceMap": true,
     "strict": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "files": ["index.ts"]
 }
