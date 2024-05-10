@@ -30,7 +30,8 @@ export class TestCase {
     async init(): Promise<ITestResult> {
         try {
             //try to get the platform local directory - can't run tests if we can't save a database to a directory
-            this.databaseName = uuid().toString();
+            this.databaseName = `db${uuid().toString()}`;
+            //this.databaseName = `db${uuid().toString().replace(/-/g, '')}`;
             const filePathResult = await this.getPlatformPath();
             if (filePathResult.success) {
                 this.directory = filePathResult.data;
