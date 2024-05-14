@@ -24,7 +24,7 @@ export class MutableDocument extends Document {
     return this;
   }
 
-  _set(key: string, value: any) {
+  _set(key: string, value: any | null) {
     this.doc[key] = value;
   }
 
@@ -38,7 +38,11 @@ export class MutableDocument extends Document {
     return this;
   }
 
-  setBlob(key: string, value: Blob): MutableDocument {
+  setBlob(key: string, value: Blob | null): MutableDocument {
+    if (value === null) {
+      this._set(key, null);
+      return this;
+    }
     this._set(key, {
       _type: 'blob',
       data: value.toDictionary(),
@@ -46,7 +50,7 @@ export class MutableDocument extends Document {
     return this;
   }
 
-  setBoolean(key: string, value: boolean | null): MutableDocument {
+  setBoolean(key: string, value: boolean): MutableDocument {
     this._set(key, value);
     return this;
   }
@@ -57,7 +61,11 @@ export class MutableDocument extends Document {
   }
 
   setDate(key: string, value: Date | null): MutableDocument {
-    this._set(key, value.toISOString());
+    if (value !== null) {
+      this._set(key, value.toISOString());
+    } else {
+      this._set(key, value);
+    }
     return this;
   }
 
@@ -66,27 +74,27 @@ export class MutableDocument extends Document {
     return this;
   }
 
-  setDouble(key: string, value: number | null): MutableDocument {
+  setDouble(key: string, value: number): MutableDocument {
     this._set(key, value);
     return this;
   }
 
-  setFloat(key: string, value: number | null): MutableDocument {
+  setFloat(key: string, value: number): MutableDocument {
     this._set(key, value);
     return this;
   }
 
-  setInt(key: string, value: number | null): MutableDocument {
+  setInt(key: string, value: number): MutableDocument {
     this._set(key, value);
     return this;
   }
 
-  setLong(key: string, value: number | null): MutableDocument {
+  setLong(key: string, value: number): MutableDocument {
     this._set(key, value);
     return this;
   }
 
-  setNumber(key: string, value: number | null): MutableDocument {
+  setNumber(key: string, value: number): MutableDocument {
     this._set(key, value);
     return this;
   }

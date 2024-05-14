@@ -1,47 +1,53 @@
+import {Dictionary} from "./definitions";
+
 /**
  * A Parameters object used for setting values to the query parameters defined in the query.
  */
 export class Parameter {
-  _parameters: { [name:string]: any } = {};
 
-  constructor(private parameters: Parameter = null) {
-    this._parameters = parameters && parameters._parameters || {};
+  name: string;
+  value: any;
+  type: string;
+
+  private _set(name: string, value: any | null, type: string) {
+    this.name = name;
+    this.value= value;
+    this.type= type;
   }
 
-  private set<T>(name: string, value: T, type: string = null) {
-    this._parameters[name] = value;
-    this._parameters[name].type = type;
+  setValue(name: string, value: any | null) {
+    this._set(name, value, "value");
   }
 
-  setString(name: string, value: string) {
-    this.set<string>(name, value, "string");
+  setString(name: string, value: string | null) {
+    this._set(name, value, "string");
   }
 
   setBoolean(name: string, value: boolean) {
-    this.set<boolean>(name, value, "boolean");
+    this._set(name, value, "boolean");
   }
 
   setFloat(name: string, value: number) {
-    this.set<number>(name, value, "float");
+    this._set(name, value, "float");
   }
 
   setDouble(name: string, value: number) {
-    this.set<number>(name, value, "double");
+    this._set(name, value, "double");
+  }
+
+  setLong(name: string, value: number) {
+    this._set(name, value, "long");
   }
 
   setInt(name: string, value: number) {
-    this.set<number>(name, value, "int");
+    this._set(name, value, "int");
   }
 
-  setInt64(name: string, value: number) {
-    this.set<number>(name, value, "int64");
+  setDate(name: string, value: string | null) {
+    this._set(name, value, "date");
   }
 
-  setDate(name: string, value: string) {
-    this.set<string>(name, value, "date");
-  }
-
-  get(name: string) {
-    return this._parameters[name];
+  get() {
+    return this
   }
 }

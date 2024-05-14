@@ -25,6 +25,7 @@ export * from './meta-expression';
 export * from './mutable-document';
 export * from './ordering';
 export * from './parameter';
+export * from './parameters';
 export * from './query';
 export * from './replicator';
 export * from './replicator-progress';

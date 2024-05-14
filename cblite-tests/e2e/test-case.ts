@@ -12,6 +12,7 @@ import {
 import {assert} from 'chai';
 
 import {ITestResult} from './test-result.types';
+import * as namesData from "./names_100.json";
 
 export class TestCase {
     //setup shared properties
@@ -26,6 +27,10 @@ export class TestCase {
     scope: Scope | undefined = undefined;
     directory: string | undefined = undefined;
     dataSource: string = this.scopeName + '.' + this.collectionName;
+
+    private TEST_DOC_TAG_KEY :string = "TEST_TAG";
+    private TEST_DOC_SORT_KEY :string = "TEST_SORT_ASC";
+    private TEST_DOC_REV_SORT_KEY :string = "TEST_SORT_DESC";
 
     async init(): Promise<ITestResult> {
         try {
@@ -233,6 +238,66 @@ export class TestCase {
             throw new Error(`Can't create collection docs in collection ${withCollection.name}: ${JSON.stringify(error)}`);
         }
         return docs;
+    }
+
+    createTestDoc(id: number, top: number, tag: string)
+        : MutableDocument {
+        const mDoc = new MutableDocument(`doc-${id}`);
+        mDoc.setValue('nullValue', null);
+        mDoc.setValue('dataValue', "value");
+        mDoc.setBoolean('booleanTrue', true);
+        mDoc.setBoolean('booleanFalse', false);
+        mDoc.setLong('longZero', 0);
+        mDoc.setLong('longBig', 4000000000);
+        mDoc.setLong('longSmall', -4000000000);
+        mDoc.setDouble('doubleBig', 1.0E200);
+        mDoc.setDouble('doubleSmall', -1.0E200);
+        mDoc.setString('stringNull', null);
+        mDoc.setString('stringPunk', "Jett");
+        mDoc.setDate('dateNull', null);
+        mDoc.setDate('dateCB', new Date('2020-01-01T00:00:00.000Z'));
+        mDoc.setBlob('blobNull', null);
+        mDoc.setString(this.TEST_DOC_TAG_KEY, tag);
+        mDoc.setLong(this.TEST_DOC_SORT_KEY, id);
+        mDoc.setLong(this.TEST_DOC_REV_SORT_KEY, top - id);
+        return mDoc;
+    }
+
+    async loadDocuments(numberOfDocs: number)
+        : Promise<void> {
+        await this.loadDocumentsIntoCollection(numberOfDocs, this.defaultCollection);
+    }
+
+    async loadDocumentsIntoCollection(
+        numberOfDocs: number,
+        collection: Collection) : Promise<void> {
+        await this.loadDocumentsStartStopByCollection(1, numberOfDocs, collection);
+    }
+
+    async loadDocumentsStartStopByCollection(
+        start: number,
+        stop: number,
+        collection: Collection) : Promise<void> {
+
+        try {
+            const last = start + stop - 1;
+            for(let counter = start; counter <= stop; counter++) {
+                let doc = this.createTestDoc(counter, last, "no-tag");
+                await collection.save(doc);
+            }
+        } catch (error) {
+            throw new Error(`Can't create docs: ${JSON.stringify(error)}`);
+        }
+    }
+
+    async loadNamesData(collection: Collection) {
+        const docs = namesData;
+        let count = 0;
+        for (const doc of docs['default']) {
+            const mutableDoc = new MutableDocument(`doc-${count.toString()}`, null, doc);
+            await collection.save(mutableDoc);
+            count++;
+        }
     }
 
     async verifyDocs(

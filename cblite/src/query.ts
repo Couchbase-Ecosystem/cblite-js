@@ -3,6 +3,8 @@ import { Parameter } from './parameter';
 import {ICoreEngine} from "../coretypes";
 import {EngineLocator} from "./engine-locator";
 import {Result, ResultSet} from "./result";
+import {Dictionary} from "./definitions";
+import {Parameters} from "./parameters";
 
 /*
 export class QueryChange {
@@ -31,7 +33,7 @@ export type QueryChangeListener = (change: QueryChange) => void;
 export class Query {
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
   private readonly _queryString: string;
-  private _parameters: Parameter[];
+  parameters: Parameters;
   private _database: Database;
 
   constructor(queryString: string, database: Database) {
@@ -45,20 +47,26 @@ export class Query {
   */
 
   async execute(): Promise<ResultSet> {
+    if (this.parameters === undefined) {
+      this.parameters = new Parameters();
+    }
     const queryResults = await this._engine.query_Execute({
       name: this._database.getName(),
       query: this._queryString,
-      parameters: this._parameters
+      parameters: this.parameters.get()
     });
     const data = queryResults["data"];
     return JSON.parse(data);
   }
 
   async explain(): Promise<ResultSet> {
+    if (this.parameters === undefined) {
+      this.parameters = new Parameters();
+    }
     const queryResults = await this._engine.query_Explain({
       name: this._database.getName(),
       query: this._queryString,
-      parameters: this._parameters
+      parameters: this.parameters.get()
     });
     const data = queryResults["data"];
     return JSON.parse(data);
@@ -73,18 +81,11 @@ export class Query {
   }
 
   getParameters() {
-    return this._parameters;
+    return this.parameters;
   }
 
-  addParameter(parameter: Parameter) {
-    this._parameters.push(parameter);
-  }
-
-  removeParameter(parameter: Parameter) {
-    const index = this._parameters.indexOf(parameter);
-    if (index > -1) {
-      this._parameters.splice(index, 1);
-    }
+  addParameter(parameters: Parameters) {
+    this.parameters = parameters;
   }
 
   toString() {

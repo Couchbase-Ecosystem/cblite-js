@@ -7,12 +7,10 @@ import {
   DatabaseConfiguration,
   Dictionary,
   Document,
-  Query,
   ReplicatorStatus,
   Scope,
   ReplicatorConfiguration,
   Result,
-  Parameter,
   MaintenanceType,
   DatabaseFileLoggingConfiguration,
 } from "./src";
@@ -284,7 +282,7 @@ export interface CollectionDocumentGetBlobContentArgs extends CollectionArgs {
 
 export interface QueryExecuteArgs extends DatabaseArgs {
   query: string;
-  parameters: Parameter[]
+  parameters: Dictionary
 }
 
 // ** DatabaseChangeListener contracts
@@ -335,10 +333,6 @@ export interface CollectionDocumentSaveResult {
 
 export interface DocumentResult {
   document: Document;
-}
-
-export interface EngineQueryArgs extends DatabaseArgs {
-  query: Query;
 }
 
 export interface ReplicatorCreateArgs {

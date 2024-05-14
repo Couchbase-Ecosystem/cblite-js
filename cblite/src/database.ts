@@ -43,7 +43,6 @@ export enum MaintenanceType {
 export class Database {
 
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
-
   public log = new DatabaseLogging(this);
 
   constructor(
