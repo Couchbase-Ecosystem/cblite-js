@@ -4,6 +4,7 @@ import {
   AbstractIndex,
   Collection,
   ConcurrencyControl,
+  Database,
   DatabaseConfiguration,
   Dictionary,
   Document,
@@ -285,21 +286,11 @@ export interface QueryExecuteArgs extends DatabaseArgs {
   parameters: Dictionary
 }
 
-// ** DatabaseChangeListener contracts
-
-/**
- * @deprecated This type will be removed in future versions. Use ColllectionChangeListener instead.
- */
-export type DatabaseChangeListener = (change: DatabaseChange) => void;
+// ** ChangeListener contracts
 
 export type CollectionChangeListener = (change: CollectionChange) => void;
 
-/**
- * @deprecated This type will be removed in future versions. Use ColllectionChange instead.
- */
-export interface DatabaseChange {
-  documentIds: string[];
-}
+export type DocumentChangeListener = (change: DocumentChange) => void;
 
 /**
  * Represents a change in a collection.
@@ -308,24 +299,52 @@ export interface DatabaseChange {
  * that have changed from a change listener
  *
  * @interface
- * @property {string[]} documentIds - The unique identifier for the user.
+ * @property {string[]} documentIds - The unique identifier for each document
  */
 export interface CollectionChange {
-  documentIds: string[];
+  documentIDs: string[];
 }
 
 /**
- * @deprecated This interface will be removed in future versions. Use ColllectionChangeListenerArgs instead.
+ * Represents arguments in a change in a collection.
+ *
+ * This interface is used set up a collection change listener
+ *
+ * @interface
  */
-export interface DatabaseChangeListenerArgs extends DatabaseArgs {
-  changeListenerToken: string;
-}
-
 export interface CollectionChangeListenerArgs extends CollectionArgs {
   changeListenerToken: string;
 }
 
-// ** end of DatabaseChangeListener contracts
+/**
+ * Represents a change in a document in a given collection
+ *
+ * This interface is used to return single documentId that has changed
+ *
+ * @interface
+ * @property {string[]} documentId - The unique identifier of the document
+ * @property {Collection} collection - The collection the document is stored in
+ * @property {Database} database - The database the collection and document are stored in
+ */
+export interface DocumentChange {
+  documentId: string;
+  collection: Collection;
+  database: Database;
+}
+
+/**
+ * Represents arguments in a change in a document in a collection.
+ *
+ * This interface is used set up a collection document change listener
+ *
+ * @interface
+ */
+export interface DocumentChangeListenerArgs extends CollectionArgs {
+  documentId: string;
+  changeListenerToken: string;
+}
+
+// ** end of ChangeListener contracts
 
 export interface CollectionDocumentSaveResult {
   _id: string;
@@ -348,6 +367,40 @@ export type ReplicatorChangeListener = (change: ReplicatorStatusChange) => void;
 
 export interface ReplicatorStatusChange {
   status: ReplicatorStatus;
+}
+
+/**
+ * Represents the data that is returned from a listener callback
+ *
+ * @interface
+ */
+export interface CallbackResultData {
+  [key: string]: any;
+}
+
+/**
+ * Represents any error messages that is returned from a listener callback
+ *
+ * @interface
+ */
+export interface CallbackResultError {
+  message: string;
+}
+
+/**
+ * Represents the interface for a listener callback
+ *
+ * @interface
+ */
+export type ListenerCallback = (data: CallbackResultData, error?: CallbackResultError) => void;
+
+/**
+ * Represents the interface for a listener handler that allows you to remove the listener
+ *
+ * @interface
+ */
+export interface ListenerHandle {
+  remove: () => Promise<void>;
 }
 
 /**
@@ -613,4 +666,27 @@ export interface ICoreEngine {
 
   replicator_Cleanup(args: ReplicatorArgs): Promise<void>;
 
+
+  //************
+  // Listeners
+  //************
+
+  collection_AddChangeListener(
+      args: CollectionChangeListenerArgs,
+      lcb: ListenerCallback)
+      : Promise<ListenerHandle>;
+
+  collection_RemoveChangeListener(
+      args: CollectionChangeListenerArgs)
+      : Promise<void>;
+
+  collection_AddDocumentChangeListener(
+      args: DocumentChangeListenerArgs,
+      lcb: ListenerCallback)
+      : Promise<ListenerHandle>;
+
+  //don't need documentId to remove change listener, so using CollectionChangeListenerArgs is perfectly legal
+  collection_RemoveDocumentChangeListener(
+      args: CollectionChangeListenerArgs)
+      : Promise<void>;
 }

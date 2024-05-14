@@ -1,5 +1,4 @@
 import {Scope} from "./scope";
-import {ICoreEngine} from "../coretypes";
 import {EngineLocator} from "./engine-locator";
 import {AbstractIndex} from "./abstract-index";
 import {Database} from "./database";
@@ -7,7 +6,48 @@ import {Document} from "./document";
 import {ConcurrencyControl} from "./concurrency-control";
 import {MutableDocument} from "./mutable-document";
 
+import {
+    DocumentChangeListener,
+    CollectionChangeListener,
+    ICoreEngine
+} from "../coretypes";
+
+import {uuid} from "./util/uuid";
+
 export class Collection {
+
+    //used for engine calls
+    private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+
+    //change listener support
+    private _changeListener: CollectionChangeListener;
+    private _didStartListener = false;
+
+    //document change listener support
+    private _documentChangeListener: Map<string, DocumentChangeListener>;
+    private _didStartDocumentListener:Map<string, boolean>;
+
+    constructor(name: string | undefined, scope: Scope | undefined, database: Database) {
+        this.name = name ?? ""
+        this.scope = scope ?? new Scope("", database);
+        this.database = database;
+        this._documentChangeListener = new Map<string, DocumentChangeListener>();
+        this._didStartDocumentListener = new Map<string, boolean>();
+    }
+
+    /**
+     * Collection's database
+     *
+     * @property
+     */
+    database: Database;
+
+    /**
+     * returns Collection's fully qualified name in the '<scope-name>.<collection-name>' format.
+     *
+     * @property
+     */
+    fullName = () => `${this.scope.name}.${this.name}`;
 
     /**
      * Collection's name.
@@ -23,49 +63,72 @@ export class Collection {
      */
     scope: Scope;
 
-	/**
-	 * Collection's database
-	 *
-	 * @property
-	 */
-	database: Database;
-
-    private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
-
-    constructor(name: string | undefined, scope: Scope | undefined, database: Database) {
-        this.name = name ?? ""
-        this.scope = scope ?? new Scope("", database);
-		this.database = database;
-    }
-
-	/**
-	 * Return ICoreEngine instance.
-	 *
-	 * @function
-	 */
-    getEngine(): ICoreEngine {
-        return this._engine;
-    }
-
     /**
-     * returns Collection's fully qualified name in the '<scope-name>.<collection-name>' format.
-     *
-     * @property
-     */
-    fullName = () => `${this.scope.name}.${this.name}`;
-
-    /**
-     * Return all index names
+     * Set a given CollectionChangeListener to the collection.
      *
      * @function
      */
-    async indexes(): Promise<string[]> {
-        const indexes =  await this._engine.collection_GetIndexes({
+    async addChangeListener(listener: CollectionChangeListener) : Promise<string> {
+        this._changeListener = listener;
+        const token = uuid();
+        if (!this._didStartListener) {
+            await this._engine.collection_AddChangeListener({
+                name: this.scope.database.getName(),
+                scopeName: this.scope.name,
+                collectionName: this.name,
+                changeListenerToken: token
+            }, (data, err) => {
+                if (err) {
+                    throw err;
+                }
+                this.notifyChangeListeners(data);
+            });
+            this._didStartListener = true;
+            return token;
+        } else {
+            throw new Error("Listener already started");
+        }
+    }
+
+    /**
+     * Set a given Collection Document Change Listener to a given document in a collection.
+     *
+     * @function
+     */
+    async addDocumentChangeListener(documentId: string, listener: DocumentChangeListener) : Promise<string> {
+        const token = uuid();
+        if (!this._didStartDocumentListener.has(documentId) && !this._documentChangeListener[documentId]) {
+            await this._engine.collection_AddDocumentChangeListener({
+                name: this.scope.database.getName(),
+                scopeName: this.scope.name,
+                collectionName: this.name,
+                changeListenerToken: token,
+                documentId: documentId
+            }, (data, err) => {
+                if (err) {
+                    throw err;
+                }
+                this.notifyDocumentChangeListeners(data);
+            });
+            this._documentChangeListener.set(documentId, listener);
+            this._didStartDocumentListener[documentId] = true;
+            return token;
+        } else {
+            throw new Error(`Listener for document ${documentId} already started`);
+        }
+    }
+
+    /**
+     * Total number of documents in the collection.
+     *
+     * @function
+     */
+    count(): Promise<{ count: number }> {
+        return this._engine.collection_GetCount({
             name: this.scope.database.getName(),
             scopeName: this.scope.name,
             collectionName: this.name,
         });
-        return indexes['indexes'];
     }
 
     /**
@@ -80,33 +143,6 @@ export class Collection {
             collectionName: this.name,
             indexName: indexName,
             index: index.toJson(),
-        });
-    }
-
-    /**
-     * Delete an index by name.
-     *
-     * @function
-     */
-    deleteIndex(indexName: string): Promise<void> {
-        return this._engine.collection_DeleteIndex({
-            name: this.scope.database.getName(),
-            scopeName: this.scope.name,
-            collectionName: this.name,
-            indexName: indexName,
-        });
-    }
-
-    /**
-     * Total number of documents in the collection.
-     *
-     * @function
-     */
-    count(): Promise<{ count: number }> {
-        return this._engine.collection_GetCount({
-            name: this.scope.database.getName(),
-            scopeName: this.scope.name,
-            collectionName: this.name,
         });
     }
 
@@ -134,6 +170,91 @@ export class Collection {
             collectionName: this.name,
             docId: id,
             concurrencyControl: concurrencyControl,
+        });
+    }
+
+    /**
+     * Delete an index by name.
+     *
+     * @function
+     */
+    deleteIndex(indexName: string): Promise<void> {
+        return this._engine.collection_DeleteIndex({
+            name: this.scope.database.getName(),
+            scopeName: this.scope.name,
+            collectionName: this.name,
+            indexName: indexName,
+        });
+    }
+
+    /**
+     * Get an existing document by document ID.
+     *
+     * Throws an error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+    async document(id: string): Promise<Document> {
+        const docJson = await this._engine.collection_GetDocument({
+            docId: id,
+            name: this.scope.database.getName(),
+            scopeName: this.scope.name,
+            collectionName: this.name,
+        });
+        if (docJson && docJson['_id']) {
+            const data = docJson['_data'];
+            const sequence = docJson['_sequence'];
+            const retId = docJson['_id'];
+            return Promise.resolve(new Document(retId, sequence, data));
+        } else {
+            return Promise.resolve(undefined);
+        }
+    }
+
+    /**
+     * Return ICoreEngine instance.
+     *
+     * @function
+     */
+    getEngine(): ICoreEngine {
+        return this._engine;
+    }
+
+    /**
+     * Return all index names
+     *
+     * @function
+     */
+    async indexes(): Promise<string[]> {
+        const indexes = await this._engine.collection_GetIndexes({
+            name: this.scope.database.getName(),
+            scopeName: this.scope.name,
+            collectionName: this.name,
+        });
+        return indexes['indexes'];
+    }
+
+    /**
+     * send data to the listener
+     *
+     * @function
+     */
+    private notifyChangeListeners(data: any) {
+        this._changeListener(data);
+    }
+
+    /**
+     * send data to the document change listener
+     *
+     * @function
+    */
+    private notifyDocumentChangeListeners(data: any) {
+        const documentId = data.documentId;
+        const changeListener = this._documentChangeListener.get(documentId);
+        changeListener({
+            documentId: documentId,
+            collection: this,
+            database: this.database
         });
     }
 
@@ -172,26 +293,42 @@ export class Collection {
     }
 
     /**
-     * Get an existing document by document ID.
+     * Remove the collection change listener.
      *
      * Throws an error if the collection is deleted or the database is closed.
      *
      * @function
      */
-    async document(id: string): Promise<Document> {
-        const docJson = await this._engine.collection_GetDocument({
-            docId: id,
-            name: this.scope.database.getName(),
-            scopeName: this.scope.name,
-            collectionName: this.name,
-        });
-        if (docJson && docJson['_id']) {
-            const data = docJson['_data'];
-            const sequence = docJson['_sequence'];
-            const retId = docJson['_id'];
-            return Promise.resolve(new Document(retId, sequence, data));
-        } else {
-            return Promise.resolve(undefined);
+    async removeChangeListener(token: string) {
+       try {
+           await this._engine.collection_RemoveChangeListener({
+               name: this.database.getName(),
+               scopeName: this.scope.name,
+               collectionName: this.name,
+               changeListenerToken: token
+           });
+       } catch(error){
+        throw error;
+       }
+    }
+
+    /**
+     * Remove the collection document change listener.
+     *
+     * Throws an error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+    async removeDocumentChangeListener(token: string) {
+        try {
+            await this._engine.collection_RemoveDocumentChangeListener({
+                name: this.database.getName(),
+                scopeName: this.scope.name,
+                collectionName: this.name,
+                changeListenerToken: token
+            });
+        } catch(error){
+            throw error;
         }
     }
 
