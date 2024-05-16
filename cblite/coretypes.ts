@@ -1,110 +1,39 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-unused-vars */
 import {
-  AbstractIndex,
-  Collection,
-  ConcurrencyControl,
-  Database,
-  DatabaseConfiguration,
-  Dictionary,
-  Document,
-  ReplicatorStatus,
-  Scope,
-  ReplicatorConfiguration,
-  Result,
-  MaintenanceType,
-  DatabaseFileLoggingConfiguration,
+    AbstractIndex,
+    Collection,
+    ConcurrencyControl,
+    Database,
+    DatabaseConfiguration,
+    DatabaseFileLoggingConfiguration,
+    Dictionary,
+    Document,
+    MaintenanceType,
+    Query,
+    ReplicatorStatus,
+    ReplicatorConfiguration,
+    Result,
+    ResultSet,
+    Scope,
 } from "./src";
 
 /**
- * Represents a Database argument
- *
- * This interface is used to return the arguments
- * for getting a database
+ * Represents the data that is returned from a listener callback
  *
  * @interface
- * @property {string} name - The unique name of the database
  */
-export interface DatabaseArgs {
-  name: string;
+export interface CallbackResultData {
+    [key: string]: any;
 }
 
 /**
- * Represents arguments for Opening a Database
- *
- * This interface is used to return the arguments
- * for opening a Database
+ * Represents any error messages that is returned from a listener callback
  *
  * @interface
- * @property {string} name - The unique name of the database
  */
-export interface DatabaseOpenArgs extends DatabaseArgs {
-  config: DatabaseConfiguration;
-}
-
-/**
- * Represents arguments for copying a Database
- *
- * This interface is used to return the arguments
- * for copying a Database
- *
- * @interface
- * @property {string} name - The unique name of the database
- */
-export interface DatabaseCopyArgs extends DatabaseArgs {
-  path: string;
-  newName: string;
-  config: DatabaseConfiguration;
-}
-
-/**
- * Represents arguments for a Database
- *
- * This interface is used to return the arguments
- * for checking if a Database exists
- *
- * @interface
- * @property {string} existsName - The unique name of the database
- * @property {string} directory - The full path to the database on the device
- */
-export interface DatabaseExistsArgs extends DatabaseArgs {
-  existsName: string;
-  directory: string;
-}
-
-/**
- * Represents arguments for performing maintenance on a Database
- *
- * @interface
- * @property {string} name - The unique name of the database
- * @property {string} maintenanceType - The type of maintenance to perform
- */
-export interface DatabasePerformMaintenanceArgs extends DatabaseArgs {
-  maintenanceType: MaintenanceType;
-}
-
-export interface DatabaseSetLogLevelArgs {
-  domain: string;
-  logLevel: number;
-}
-
-export interface DatabaseSetFileLoggingConfigArgs extends DatabaseArgs {
-  config: DatabaseFileLoggingConfiguration;
-}
-
-/**
- * Represents a Scope argument
- *
- * This interface is used to return the arguments
- * for getting a Scope from a Database
- *
- * @interface
- * @property {string} name - The unique name of the database
- * @property {string} scopeName - The unique name of the Scope
- */
-export interface ScopeArgs {
-  name: string;
-  scopeName: string;
+export interface CallbackResultError {
+    message: string;
 }
 
 /**
@@ -119,32 +48,35 @@ export interface ScopeArgs {
  * @property {string} collectionName - The unique name of the Collection
  */
 export interface CollectionArgs {
-  name: string;
-  scopeName: string;
-  collectionName: string;
-}
-
-export interface CollectionsResult {
-  collections: Collection[];
-}
-
-export interface ScopesResult {
-  scopes: Scope[];
+    name: string;
+    scopeName: string;
+    collectionName: string;
 }
 
 /**
- * @deprecated This interface will be removed in future versions. Use ColllectionCreateIndexArgs instead.
+ * Represents a change in a collection.
+ *
+ * This interface is used to return a set of documents
+ * that have changed from a change listener
+ *
+ * @interface
+ * @property {string[]} documentIds - The unique identifier for each document
  */
-export interface DatabaseCreateIndexArgs extends DatabaseArgs {
-  indexName: string;
-  index: AbstractIndex;
+export interface CollectionChange {
+    documentIDs: string[];
 }
 
+export type CollectionChangeListener = (change: CollectionChange) => void;
+
 /**
- * @deprecated This interface will be removed in future versions. Use ColllectionDeleteIndexArgs instead.
+ * Represents arguments in a change in a collection.
+ *
+ * This interface is used set up a collection change listener
+ *
+ * @interface
  */
-export interface DatabaseDeleteIndexArgs extends DatabaseArgs {
-  indexName: string;
+export interface CollectionChangeListenerArgs extends CollectionArgs {
+    changeListenerToken: string;
 }
 
 /**
@@ -161,8 +93,25 @@ export interface DatabaseDeleteIndexArgs extends DatabaseArgs {
  * @property {string} index - The abstract index to create
  */
 export interface CollectionCreateIndexArgs extends CollectionArgs {
-  indexName: string;
-  index: AbstractIndex;
+    indexName: string;
+    index: AbstractIndex;
+}
+
+/**
+ * Represents arguments for a deleting a document from a collection
+ *
+ * This interface is used to return the arguments
+ * for deleting a document from a Collection
+ *
+ * @interface
+ * @property {string} name - The unique name of the database
+ * @property {string} scopeName - The unique name of the Scope
+ * @property {string} collectionName - The unique name of the Collection
+ * @property {string} docId - The unique id of the document
+ */
+export interface CollectionDeleteDocumentArgs extends CollectionArgs {
+    docId: string;
+    concurrencyControl: ConcurrencyControl;
 }
 
 /**
@@ -179,77 +128,16 @@ export interface CollectionCreateIndexArgs extends CollectionArgs {
  * @property {string} directory - The full path to the database on the device
  */
 export interface CollectionDeleteIndexArgs extends CollectionArgs {
-  indexName: string;
+    indexName: string;
 }
 
-/**
- * @deprecated This interface will be removed in future versions. Use ColllectionSaveArgs instead.
- */
-export interface DatabaseSaveArgs extends DatabaseArgs {
-  id: string;
-  document: Dictionary;
-  concurrencyControl: ConcurrencyControl | null;
+export interface CollectionDocumentGetBlobContentArgs extends CollectionArgs {
+    documentId: string;
+    key: string;
 }
 
-export interface CollectionSaveArgs extends CollectionArgs {
-  id: string;
-  document: Dictionary;
-  concurrencyControl: ConcurrencyControl | null;
-}
-
-/**
- * @deprecated This interface will be removed in future versions. Use ColllectionPurgeDocumentArgs instead.
- */
-export interface DatabasePurgeDocumentArgs extends DatabaseArgs {
-  docId: string;
-}
-
-/**
- * Represents arguments for a purging a document from a collection
- *
- * This interface is used to return the arguments
- * for purging a document from a Collection
- *
- * @interface
- * @property {string} name - The unique name of the database
- * @property {string} scopeName - The unique name of the Scope
- * @property {string} collectionName - The unique name of the Collection
- * @property {string} docId - The unique id of the document
- */
-export interface CollectionPurgeDocumentArgs extends CollectionArgs {
-  docId: string;
-}
-
-/**
- * @deprecated This interface will be removed in future versions. Use ColllectionDeleteDocumentArgs instead.
- */
-export interface DatabaseDeleteDocumentArgs extends DatabaseArgs {
-  docId: string;
-  concurrencyControl: ConcurrencyControl;
-}
-
-/**
- * Represents arguments for a deleting a document from a collection
- *
- * This interface is used to return the arguments
- * for deleting a document from a Collection
- *
- * @interface
- * @property {string} name - The unique name of the database
- * @property {string} scopeName - The unique name of the Scope
- * @property {string} collectionName - The unique name of the Collection
- * @property {string} docId - The unique id of the document
- */
-export interface CollectionDeleteDocumentArgs extends CollectionArgs {
-  docId: string;
-  concurrencyControl: ConcurrencyControl;
-}
-
-/**
- * @deprecated This interface will be removed in future versions. Use ColllectionDeleteDocumentArgs instead.
- */
-export interface DatabaseGetDocumentArgs extends DatabaseArgs {
-  docId: string;
+export interface CollectionDocumentSaveResult {
+    _id: string;
 }
 
 /**
@@ -265,55 +153,155 @@ export interface DatabaseGetDocumentArgs extends DatabaseArgs {
  * @property {string} docId - The unique id of the document
  */
 export interface CollectionGetDocumentArgs extends CollectionArgs {
-  docId: string;
+    docId: string;
 }
 
 /**
- * @deprecated This interface will be removed in future versions. Use ColllectionDocumentGetBlobContentArgs instead.
- */
-export interface DocumentGetBlobContentArgs extends DatabaseArgs {
-  documentId: string;
-  key: string;
-}
-
-export interface CollectionDocumentGetBlobContentArgs extends CollectionArgs {
-  documentId: string;
-  key: string;
-}
-
-export interface QueryExecuteArgs extends DatabaseArgs {
-  query: string;
-  parameters: Dictionary
-}
-
-// ** ChangeListener contracts
-
-export type CollectionChangeListener = (change: CollectionChange) => void;
-
-export type DocumentChangeListener = (change: DocumentChange) => void;
-
-/**
- * Represents a change in a collection.
+ * Represents arguments for a purging a document from a collection
  *
- * This interface is used to return a set of documents
- * that have changed from a change listener
+ * This interface is used to return the arguments
+ * for purging a document from a Collection
  *
  * @interface
- * @property {string[]} documentIds - The unique identifier for each document
+ * @property {string} name - The unique name of the database
+ * @property {string} scopeName - The unique name of the Scope
+ * @property {string} collectionName - The unique name of the Collection
+ * @property {string} docId - The unique id of the document
  */
-export interface CollectionChange {
-  documentIDs: string[];
+export interface CollectionPurgeDocumentArgs extends CollectionArgs {
+    docId: string;
+}
+
+export interface CollectionSaveArgs extends CollectionArgs {
+    id: string;
+    document: Dictionary;
+    concurrencyControl: ConcurrencyControl | null;
+}
+
+export interface CollectionsResult {
+    collections: Collection[];
 }
 
 /**
- * Represents arguments in a change in a collection.
+ * Represents a Database argument
  *
- * This interface is used set up a collection change listener
+ * This interface is used to return the arguments
+ * for getting a database
  *
  * @interface
+ * @property {string} name - The unique name of the database
  */
-export interface CollectionChangeListenerArgs extends CollectionArgs {
-  changeListenerToken: string;
+export interface DatabaseArgs {
+    name: string;
+}
+
+/**
+ * Represents arguments for copying a Database
+ *
+ * This interface is used to return the arguments
+ * for copying a Database
+ *
+ * @interface
+ * @property {string} name - The unique name of the database
+ */
+export interface DatabaseCopyArgs extends DatabaseArgs {
+    path: string;
+    newName: string;
+    config: DatabaseConfiguration;
+}
+
+/**
+ * @deprecated This interface will be removed in future versions. Use CollectionCreateIndexArgs instead.
+ */
+export interface DatabaseCreateIndexArgs extends DatabaseArgs {
+    indexName: string;
+    index: AbstractIndex;
+}
+
+/**
+ * @deprecated This interface will be removed in future versions. Use CollectionDeleteDocumentArgs instead.
+ */
+export interface DatabaseDeleteDocumentArgs extends DatabaseArgs {
+    docId: string;
+    concurrencyControl: ConcurrencyControl;
+}
+
+/**
+ * @deprecated This interface will be removed in future versions. Use CollectionDeleteIndexArgs instead.
+ */
+export interface DatabaseDeleteIndexArgs extends DatabaseArgs {
+    indexName: string;
+}
+
+/**
+ * Represents arguments for a Database
+ *
+ * This interface is used to return the arguments
+ * for checking if a Database exists
+ *
+ * @interface
+ * @property {string} existsName - The unique name of the database
+ * @property {string} directory - The full path to the database on the device
+ */
+export interface DatabaseExistsArgs extends DatabaseArgs {
+    existsName: string;
+    directory: string;
+}
+
+/**
+ * @deprecated This interface will be removed in future versions. Use CollectionDeleteDocumentArgs instead.
+ */
+export interface DatabaseGetDocumentArgs extends DatabaseArgs {
+    docId: string;
+}
+
+/**
+ * Represents arguments for Opening a Database
+ *
+ * This interface is used to return the arguments
+ * for opening a Database
+ *
+ * @interface
+ * @property {string} name - The unique name of the database
+ */
+export interface DatabaseOpenArgs extends DatabaseArgs {
+    config: DatabaseConfiguration;
+}
+
+/**
+ * Represents arguments for performing maintenance on a Database
+ *
+ * @interface
+ * @property {string} name - The unique name of the database
+ * @property {string} maintenanceType - The type of maintenance to perform
+ */
+export interface DatabasePerformMaintenanceArgs extends DatabaseArgs {
+    maintenanceType: MaintenanceType;
+}
+
+/**
+ * @deprecated This interface will be removed in future versions. Use CollectionPurgeDocumentArgs instead.
+ */
+export interface DatabasePurgeDocumentArgs extends DatabaseArgs {
+    docId: string;
+}
+
+/**
+ * @deprecated This interface will be removed in future versions. Use ColllectionSaveArgs instead.
+ */
+export interface DatabaseSaveArgs extends DatabaseArgs {
+    id: string;
+    document: Dictionary;
+    concurrencyControl: ConcurrencyControl | null;
+}
+
+export interface DatabaseSetFileLoggingConfigArgs extends DatabaseArgs {
+    config: DatabaseFileLoggingConfiguration;
+}
+
+export interface DatabaseSetLogLevelArgs {
+    domain: string;
+    logLevel: number;
 }
 
 /**
@@ -327,10 +315,12 @@ export interface CollectionChangeListenerArgs extends CollectionArgs {
  * @property {Database} database - The database the collection and document are stored in
  */
 export interface DocumentChange {
-  documentId: string;
-  collection: Collection;
-  database: Database;
+    documentId: string;
+    collection: Collection;
+    database: Database;
 }
+
+export type DocumentChangeListener = (change: DocumentChange) => void;
 
 /**
  * Represents arguments in a change in a document in a collection.
@@ -340,51 +330,20 @@ export interface DocumentChange {
  * @interface
  */
 export interface DocumentChangeListenerArgs extends CollectionArgs {
-  documentId: string;
-  changeListenerToken: string;
+    documentId: string;
+    changeListenerToken: string;
 }
 
-// ** end of ChangeListener contracts
-
-export interface CollectionDocumentSaveResult {
-  _id: string;
+/**
+ * @deprecated This interface will be removed in future versions. Use CollectionDocumentGetBlobContentArgs instead.
+ */
+export interface DocumentGetBlobContentArgs extends DatabaseArgs {
+    documentId: string;
+    key: string;
 }
 
 export interface DocumentResult {
-  document: Document;
-}
-
-export interface ReplicatorCreateArgs {
-  config: ReplicatorConfiguration;
-}
-
-export interface ReplicatorArgs {
-  replicatorId: string;
-}
-
-// implementation for Replicator Change Listener
-export type ReplicatorChangeListener = (change: ReplicatorStatusChange) => void;
-
-export interface ReplicatorStatusChange {
-  status: ReplicatorStatus;
-}
-
-/**
- * Represents the data that is returned from a listener callback
- *
- * @interface
- */
-export interface CallbackResultData {
-  [key: string]: any;
-}
-
-/**
- * Represents any error messages that is returned from a listener callback
- *
- * @interface
- */
-export interface CallbackResultError {
-  message: string;
+    document: Document;
 }
 
 /**
@@ -400,7 +359,85 @@ export type ListenerCallback = (data: CallbackResultData, error?: CallbackResult
  * @interface
  */
 export interface ListenerHandle {
-  remove: () => Promise<void>;
+    remove: () => Promise<void>;
+}
+
+/**
+ * Represents a change in a collection.
+ *
+ * This interface is used to return a set of documents
+ * that have changed from a change listener
+ *
+ * @interface
+ * @property {string[]} documentIds - The unique identifier for each document
+ */
+export interface QueryChange {
+    error: string;
+    query: Query;
+    results: ResultSet;
+}
+
+export type QueryChangeListener = (change: QueryChange) => void;
+
+/**
+ * Represents arguments in a change in a document in a collection.
+ *
+ * This interface is used set up a collection document change listener
+ *
+ * @interface
+ */
+export interface QueryChangeListenerArgs extends QueryExecuteArgs {
+    changeListenerToken: string;
+}
+
+/**
+ * Represents arguments in a change in a collection.
+ *
+ * This interface is used set up a collection change listener
+ *
+ * @interface
+ */
+export interface QueryRemoveChangeListenerArgs extends DatabaseArgs {
+    changeListenerToken: string;
+}
+
+export interface QueryExecuteArgs extends DatabaseArgs {
+    query: string;
+    parameters: Dictionary
+}
+
+export interface ReplicatorArgs {
+    replicatorId: string;
+}
+
+// implementation for Replicator Change Listener
+export type ReplicatorChangeListener = (change: ReplicatorStatusChange) => void;
+
+export interface ReplicatorCreateArgs {
+    config: ReplicatorConfiguration;
+}
+
+export interface ReplicatorStatusChange {
+    status: ReplicatorStatus;
+}
+
+/**
+ * Represents a Scope argument
+ *
+ * This interface is used to return the arguments
+ * for getting a Scope from a Database
+ *
+ * @interface
+ * @property {string} name - The unique name of the database
+ * @property {string} scopeName - The unique name of the Scope
+ */
+export interface ScopeArgs {
+    name: string;
+    scopeName: string;
+}
+
+export interface ScopesResult {
+    scopes: Scope[];
 }
 
 /**
@@ -410,283 +447,244 @@ export interface ListenerHandle {
  */
 export interface ICoreEngine {
 
-  //*************************************************
-  // File System - used for copy and opening database
-  //*************************************************
+    //************
+    // Collections
+    //************
+    collection_AddChangeListener(args: CollectionChangeListenerArgs, lcb: ListenerCallback)
+        : Promise<ListenerHandle>;
 
-  /**
-   * Represents getting a default path from the operating system to save a database
-   *
-   * This function is used to for returning the default path on the operating system to save a database
-   *
-   * @function
-   */
-  file_GetDefaultPath(): Promise<{ path: string }>;
+    collection_AddDocumentChangeListener(args: DocumentChangeListenerArgs, lcb: ListenerCallback) : Promise<ListenerHandle>;
 
-  file_GetFileNamesInDirectory(args: {
-    path: string;
-  }): Promise<{ files: string[] }>;
+    collection_CreateCollection(args: CollectionArgs) : Promise<Collection>;
 
-  // ****************************
-  // Database top level functions
-  // ****************************
+    /**
+     * Represents creating an Index
+     *
+     * This function is used to for creating an Index in a Collection
+     *
+     * @interface
+     * @property {CollectionCreateIndexArgs} arguments for creating an Index
+     */
+    collection_CreateIndex(args: CollectionCreateIndexArgs): Promise<void>;
 
-  database_Open(args: DatabaseOpenArgs): Promise<void>;
+    collection_DeleteCollection(args: CollectionArgs) : Promise<void>;
 
-  database_GetPath(args: DatabaseArgs): Promise<{ path: string }>;
+    /**
+     * Delete a document from the collection. The default concurrency control, lastWriteWins,
+     * will be used when there is conflict during delete. If the document doesn’t exist in the
+     * collection, an error will be thrown.
+     *
+     * When deleting a document that already belongs to a collection, the collection instance of
+     * the document and this collection instance must be the same, otherwise, an
+     * error will be thrown.
+     *
+     * Throws an Error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+    collection_DeleteDocument(args: CollectionDeleteDocumentArgs): Promise<void>;
 
-  database_Copy(args: DatabaseCopyArgs): Promise<void>;
+    /**
+     * Represents deleting an Index
+     *
+     * This function is used to for deleting an Index in a Collection
+     *
+     * @interface
+     * @property {CollectionDeleteIndexArgs} arguments for deleting an Index
+     */
+    collection_DeleteIndex(args: CollectionDeleteIndexArgs): Promise<void>;
 
-  database_Exists(args: DatabaseExistsArgs): Promise<{ exists: boolean }>;
+    collection_GetCollection(args: CollectionArgs)
+        : Promise<Collection>;
 
-  database_Close(args: DatabaseArgs): Promise<void>;
+    collection_GetCollections(args: ScopeArgs)
+        : Promise<CollectionsResult>;
 
-  database_Delete(args: DatabaseArgs): Promise<void>;
+    /**
+     * Total number of documents in the collection.
+     *
+     * @function
+     */
+    collection_GetCount(args: CollectionArgs)
+        : Promise<{ count: number }>;
 
-  //*********************
-  // Database maintenance
-  //*********************
+    collection_GetDefault(args: DatabaseArgs)
+        : Promise<Collection>;
 
-  database_PerformMaintenance(args: DatabasePerformMaintenanceArgs): Promise<void>;
+    /**
+     * Get an existing document by document ID.
+     *
+     * Throws an error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+    collection_GetDocument(args: CollectionGetDocumentArgs): Promise<DocumentResult>;
 
-  //*****************
-  // Database logging
-  //*****************
-  
-  database_SetLogLevel(args: DatabaseSetLogLevelArgs): Promise<void>;
+    collection_GetDocumentBlobContent(args: CollectionDocumentGetBlobContentArgs )
+        : Promise<ArrayBuffer>;
 
-  database_SetFileLoggingConfig(
-    args: DatabaseSetFileLoggingConfigArgs
-  ): Promise<void>;
+    /**
+     * Represents getting an Index
+     *
+     * This function is used to for getting an Index in a Collection
+     *
+     * @interface
+     * @property {CollectionArgs} arguments for getting an Index
+     */
+    collection_GetIndexes(args: CollectionArgs): Promise<{ indexes: string[] }>;
 
-  //*******
-  // Scopes
-  //*******
+    /**
+     * Purge a document by id from the collection. If the document doesn’t exist in the
+     * collection, an error will be thrown.
+     *
+     * Throws an error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+    collection_PurgeDocument(args: CollectionPurgeDocumentArgs): Promise<void>;
 
-  scope_GetDefault(args: DatabaseArgs): Promise<Scope>;
+    collection_RemoveChangeListener(args: CollectionChangeListenerArgs)
+        : Promise<void>;
 
-  scope_GetScopes(args: DatabaseArgs): Promise<ScopesResult>;
+    //don't need documentId to remove change listener, so using CollectionChangeListenerArgs is perfectly legal
+    collection_RemoveDocumentChangeListener(args: CollectionChangeListenerArgs)
+        : Promise<void>;
 
-  scope_GetScope(args: ScopeArgs): Promise<Scope>;
+    /**
+     * Save a document into the collection. The default concurrency control, lastWriteWins, will
+     * be used when there is conflict during save.
+     *
+     * When saving a document that already belongs to a collection, the collection instance of
+     * the document and this collection instance must be the same, otherwise, an
+     * error will be thrown.
+     *
+     * Throws an error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+    collection_Save(args: CollectionSaveArgs )
+        : Promise<CollectionDocumentSaveResult>;
 
-  //************
-  // Collections
-  //************
+    // ****************************
+    // Database
+    // ****************************
 
-  collection_GetDefault(args: DatabaseArgs)
-    : Promise<Collection>;
+    database_Close(args: DatabaseArgs): Promise<void>;
 
-  collection_GetCollections(args: ScopeArgs)
-    : Promise<CollectionsResult>;
+    database_Copy(args: DatabaseCopyArgs): Promise<void>;
 
-  collection_GetCollection(args: CollectionArgs)
-    : Promise<Collection>;
+    /**
+     * @deprecated This will be removed in future versions. Use collection_CreateIndex instead.
+     */
+    database_CreateIndex(args: DatabaseCreateIndexArgs): Promise<void>;
 
-  collection_CreateCollection(args: CollectionArgs) 
-    : Promise<Collection>;
+    database_Delete(args: DatabaseArgs): Promise<void>;
 
-  collection_DeleteCollection(args: CollectionArgs)
-    : Promise<void>;
+    /**
+     * @deprecated This will be removed in future versions. Use Collection_DeleteDocument instead.
+     */
+    database_DeleteDocument(args: DatabaseDeleteDocumentArgs): Promise<void>;
 
-  //*********
-  // Indexing
-  //*********
+    /**
+     * @deprecated This will be removed in future versions. Use collection_DeleteIndex instead.
+     */
+    database_DeleteIndex(args: DatabaseDeleteIndexArgs): Promise<void>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use collection_CreateIndex instead.
-   */
-  database_CreateIndex(args: DatabaseCreateIndexArgs): Promise<void>;
+    database_Exists(args: DatabaseExistsArgs): Promise<{ exists: boolean }>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use collection_DeleteIndex instead.
-   */
-  database_DeleteIndex(args: DatabaseDeleteIndexArgs): Promise<void>;
+    /**
+     * @deprecated This will be removed in future versions. Use collection_GetCount instead.
+     */
+    database_GetCount(args: DatabaseArgs)
+        : Promise<{ count: number }>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use collection_GetIndexes instead.
-   */
-  database_GetIndexes(args: DatabaseArgs): Promise<{ indexes: string[] }>;
+    /**
+     * @deprecated This will be removed in future versions. Use Collection_GetDocument instead.
+     */
+    database_GetDocument(args: DatabaseGetDocumentArgs): Promise<DocumentResult>;
 
-   /**
-   * Represents creating an Index
-   *
-   * This function is used to for creating an Index in a Collection
-   *
-   * @interface
-   * @property {CollectionCreateIndexArgs} arguments for creating an Index
-   */
-   collection_CreateIndex(args: CollectionCreateIndexArgs): Promise<void>;
+    /**
+     * @deprecated This will be removed in future versions. Use collection_GetIndexes instead.
+     */
+    database_GetIndexes(args: DatabaseArgs): Promise<{ indexes: string[] }>;
 
-   /**
-    * Represents deleting an Index
-    *
-    * This function is used to for deleting an Index in a Collection
-    *
-    * @interface
-    * @property {CollectionDeleteIndexArgs} arguments for deleting an Index
-    */
-   collection_DeleteIndex(args: CollectionDeleteIndexArgs): Promise<void>;
- 
-   /**
-    * Represents getting an Index
-    *
-    * This function is used to for getting an Index in a Collection
-    *
-    * @interface
-    * @property {CollectionArgs} arguments for getting an Index
-    */
-   collection_GetIndexes(args: CollectionArgs): Promise<{ indexes: string[] }>;
+    database_GetPath(args: DatabaseArgs): Promise<{ path: string }>;
 
-  //**********************************
-  // Documents 
-  //**********************************
+    database_Open(args: DatabaseOpenArgs): Promise<void>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use collection_Save instead.
-   */
-  database_Save(args: DatabaseSaveArgs): Promise<{ _id: string }>;
+    database_PerformMaintenance(args: DatabasePerformMaintenanceArgs): Promise<void>;
 
-  /**
-   * Save a document into the collection. The default concurrency control, lastWriteWins, will
-   * be used when there is conflict during save.
-   *
-   * When saving a document that already belongs to a collection, the collection instance of
-   * the document and this collection instance must be the same, otherwise, an
-   * error will be thrown.
-   *
-   * Throws an error if the collection is deleted or the database is closed.
-   *
-   * @function
-   */
-  collection_Save(
-    args: CollectionSaveArgs
-  ): Promise<CollectionDocumentSaveResult>;
+    /**
+     * @deprecated This will be removed in future versions. Use collection_PurgeDocument instead.
+     */
+    database_PurgeDocument(args: DatabasePurgeDocumentArgs): Promise<void>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use collection_PurgeDocument instead.
-   */
-  database_PurgeDocument(args: DatabasePurgeDocumentArgs): Promise<void>;
+    /**
+     * @deprecated This will be removed in future versions. Use collection_Save instead.
+     */
+    database_Save(args: DatabaseSaveArgs): Promise<{ _id: string }>;
 
-  /**
-   * Purge a document by id from the collection. If the document doesn’t exist in the
-   * collection, an error will be thrown.
-   *
-   * Throws an error if the collection is deleted or the database is closed.
-   *
-   * @function
-   */
-  collection_PurgeDocument(args: CollectionPurgeDocumentArgs): Promise<void>;
+    database_SetFileLoggingConfig(args: DatabaseSetFileLoggingConfigArgs )
+        : Promise<void>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use Collection_DeleteDocument instead.
-   */
-  database_DeleteDocument(args: DatabaseDeleteDocumentArgs): Promise<void>;
+    database_SetLogLevel(args: DatabaseSetLogLevelArgs): Promise<void>;
 
-  /**
-   * Delete a document from the collection. The default concurrency control, lastWriteWins,
-   * will be used when there is conflict during delete. If the document doesn’t exist in the
-   * collection, an error will be thrown.
-   *
-   * When deleting a document that already belongs to a collection, the collection instance of
-   * the document and this collection instance must be the same, otherwise, an
-   * error will be thrown.
-   *
-   * Throws an Error if the collection is deleted or the database is closed.
-   *
-   * @function
-   */
-  collection_DeleteDocument(args: CollectionDeleteDocumentArgs): Promise<void>;
+    /**
+     * @deprecated This will be removed in future versions. Use Collection_GetDocumentBlobContent instead.
+     */
+    document_GetBlobContent(args: DocumentGetBlobContentArgs )
+        : Promise<ArrayBuffer>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use Collection_GetDocument instead.
-   */
-  database_GetDocument(args: DatabaseGetDocumentArgs): Promise<DocumentResult>;
+    /**
+     * Represents getting a default path from the operating system to save a database
+     *
+     * This function is used to for returning the default path on the operating system to save a database
+     *
+     * @function
+     */
+    file_GetDefaultPath(): Promise<{ path: string }>;
 
-  /**
-   * Get an existing document by document ID.
-   *
-   * Throws an error if the collection is deleted or the database is closed.
-   *
-   * @function
-   */
-  collection_GetDocument(args: CollectionGetDocumentArgs): Promise<DocumentResult>;
+    file_GetFileNamesInDirectory(args: { path: string; }): Promise<{ files: string[] }>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use Collection_GetDocumentBlobContent instead.
-   */
-  document_GetBlobContent(
-      args: DocumentGetBlobContentArgs
-  ): Promise<ArrayBuffer>;
+    //**********************
+    // Query
+    //**********************
+    query_AddChangeListener(args: QueryChangeListenerArgs, lcb: ListenerCallback)
+        : Promise<ListenerHandle>;
 
-  collection_GetDocumentBlobContent(
-      args: CollectionDocumentGetBlobContentArgs
-  ) : Promise<ArrayBuffer>;
+    query_Execute(args: QueryExecuteArgs): Promise<Result>;
 
-  /**
-   * @deprecated This will be removed in future versions. Use collection_GetCount instead.
-   */
-  database_GetCount(args: DatabaseArgs)
-    : Promise<{ count: number }>;
+    query_Explain(args: QueryExecuteArgs): Promise<Result>;
 
-  /**
-   * Total number of documents in the collection.
-   *
-   * @function
-   */
-  collection_GetCount(args: CollectionArgs)
-    : Promise<{ count: number }>;
+    query_RemoveChangeListener(args: QueryRemoveChangeListenerArgs)
+        : Promise<void>;
 
+    //***********
+    // Replicator
+    //***********
+    replicator_Cleanup(args: ReplicatorArgs): Promise<void>;
 
-  //**********************
-  // Query 
-  //**********************
+    replicator_Create(
+        args: ReplicatorCreateArgs
+    ): Promise<{ replicatorId: string }>;
 
-  query_Execute(args: QueryExecuteArgs): Promise<Result>;
+    replicator_GetStatus(args: ReplicatorArgs): Promise<ReplicatorStatus>;
 
-  query_Explain(args: QueryExecuteArgs): Promise<Result>;
- 
+    replicator_Start(args: ReplicatorArgs): Promise<void>;
 
-  //***********
-  // Replicator
-  //*********** 
+    replicator_Restart(args: ReplicatorArgs): Promise<void>;
 
-  replicator_Create(
-    args: ReplicatorCreateArgs
-  ): Promise<{ replicatorId: string }>;
+    replicator_Stop(args: ReplicatorArgs): Promise<void>;
 
-  replicator_Start(args: ReplicatorArgs): Promise<void>;
+    replicator_ResetCheckpoint(args: ReplicatorArgs): Promise<void>;
 
-  replicator_Restart(args: ReplicatorArgs): Promise<void>;
+    //*******
+    // Scopes
+    //*******
+    scope_GetDefault(args: DatabaseArgs): Promise<Scope>;
 
-  replicator_Stop(args: ReplicatorArgs): Promise<void>;
+    scope_GetScope(args: ScopeArgs): Promise<Scope>;
 
-  replicator_ResetCheckpoint(args: ReplicatorArgs): Promise<void>;
+    scope_GetScopes(args: DatabaseArgs): Promise<ScopesResult>;
 
-  replicator_GetStatus(args: ReplicatorArgs): Promise<ReplicatorStatus>;
-
-  replicator_Cleanup(args: ReplicatorArgs): Promise<void>;
-
-
-  //************
-  // Listeners
-  //************
-
-  collection_AddChangeListener(
-      args: CollectionChangeListenerArgs,
-      lcb: ListenerCallback)
-      : Promise<ListenerHandle>;
-
-  collection_RemoveChangeListener(
-      args: CollectionChangeListenerArgs)
-      : Promise<void>;
-
-  collection_AddDocumentChangeListener(
-      args: DocumentChangeListenerArgs,
-      lcb: ListenerCallback)
-      : Promise<ListenerHandle>;
-
-  //don't need documentId to remove change listener, so using CollectionChangeListenerArgs is perfectly legal
-  collection_RemoveDocumentChangeListener(
-      args: CollectionChangeListenerArgs)
-      : Promise<void>;
 }
