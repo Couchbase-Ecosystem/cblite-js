@@ -649,6 +649,7 @@ export interface ICoreEngine {
     //**********************
     // Query
     //**********************
+
     query_AddChangeListener(args: QueryChangeListenerArgs, lcb: ListenerCallback)
         : Promise<ListenerHandle>;
 

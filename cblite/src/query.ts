@@ -17,6 +17,9 @@ export class Query {
     parameters: Parameters;
     private _database: Database;
 
+    //used for engine calls
+    private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+
     //query change listener support
     private _changeListener: QueryChangeListener;
     private _didStartQueryListener: boolean;
@@ -34,11 +37,10 @@ export class Query {
      */
     async addChangeListener(listener: QueryChangeListener)
         : Promise<string> {
+        this._changeListener = listener;
         const token = uuid();
-        if(!this._didStartQueryListener && this._changeListener === undefined){
-            this._changeListener = listener;
-            await this._database
-                .getEngine()
+        if(!this._didStartQueryListener){
+            await this._engine
                 .query_AddChangeListener({
                     name: this._database.getName(),
                     query: this._queryString,
@@ -132,10 +134,11 @@ export class Query {
      * @function
      */
     private notifyChangeListeners(data: any){
+        const stringData = data["data"];
         this._changeListener({
             query: this,
             error: data.error,
-            results: data.results
+            results: JSON.parse(stringData)
         });
     }
 

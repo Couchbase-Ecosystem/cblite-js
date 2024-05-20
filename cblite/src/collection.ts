@@ -72,7 +72,8 @@ export class Collection {
         this._changeListener = listener;
         const token = uuid();
         if (!this._didStartListener) {
-            await this._engine.collection_AddChangeListener({
+            await this._engine
+                .collection_AddChangeListener({
                 name: this.scope.database.getName(),
                 scopeName: this.scope.name,
                 collectionName: this.name,
