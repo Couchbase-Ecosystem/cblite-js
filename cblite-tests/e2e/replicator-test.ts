@@ -1,12 +1,29 @@
 import { TestCase } from './test-case';
 import { ITestResult } from './test-result.types';
-
+import {ReplicatorConfiguration, URLEndpoint} from 'cblite';
 /**
  * ReplicatorTests - reminder all test cases must start with 'test' in the name of the method or they will not run
  * */
 export class ReplicatorTests extends TestCase {
   constructor() {
     super();
+  }
+
+  /**
+   *
+   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
+   */
+  async testReplicatorConfigDefaultValues(): Promise<ITestResult> {
+    const target = new URLEndpoint('ws://localhost:4984/db');
+    const config = new ReplicatorConfiguration(target);
+    config.addCollection(this.collection);
+
+    return {
+      testName: 'testReplicatorConfigDefaultValues',
+      success: false,
+      message: 'Not implemented',
+      data: undefined,
+    };
   }
 
   /**
@@ -217,18 +234,7 @@ export class ReplicatorTests extends TestCase {
     };
   }
 
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testReplicatorConfigDefaultValues(): Promise<ITestResult> {
-    return {
-      testName: 'testReplicatorConfigDefaultValues',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
+
 
   /**
    *
