@@ -3,24 +3,14 @@ import {uuid as v4} from './util/uuid';
 import {ICoreEngine} from "../coretypes";
 import {EngineLocator} from "./engine-locator";
 import {ReplicatorStatus} from "./replicator-status";
-
-export enum ReplicatorActivityLevel {
-    STOPPED = 0,
-    OFFLINE = 1,
-    CONNECTING = 2,
-    IDLE = 3,
-    BUSY = 4,
-}
+import {ReplicatorActivityLevel} from "./replicator-activity-level";
 
 export class Replicator {
-    readonly ActivityLevel = ReplicatorActivityLevel;
+    readonly ActivityLevel:ReplicatorActivityLevel = undefined;
 
-    private _replicatorId: string = null;
-
+    private _replicatorId: string = undefined;
     private status: ReplicatorStatus;
-    
-    private _config: ReplicatorConfiguration;
-
+    private readonly _config: ReplicatorConfiguration;
     private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
 
     /**
@@ -29,20 +19,65 @@ export class Replicator {
      * @param config
      */
     constructor(config: ReplicatorConfiguration) {
-        this._replicatorId = v4();
         this._config = config;
     }
 
-    setId(replicatorId: string) {
-        this._replicatorId = replicatorId;
+    /**
+     * Removes the replicator from the native engine and stops the replicator from running.
+     * This will remove all listeners from the replicator.  As part of this, if you were to call start
+     * after this method, a new replicator would be created Natively and a new replicator id would be
+     * created.
+     *
+     * @function
+     *
+     */
+    async cleanup():Promise<void> {
+        await this._engine.replicator_Cleanup({replicatorId: this._replicatorId});
+        this._replicatorId = null;
     }
 
-    getId() {
+    /**
+     * returns the replicator id used to manage the replicator between the engine and the replicator
+     * native implementation.  This value should get set when the replicator is created in the native
+     * engine via the start method.
+     * @function
+     *
+     */
+    getId() : string | undefined {
         return this._replicatorId;
     }
 
-    async start(): Promise<void> {
-        if (this._replicatorId != null) {
+    /**
+     * returns a copy of the replicators current configuration.
+     * @function
+     */
+    getConfiguration():ReplicatorConfiguration {
+        return this._config;
+    }
+
+    /**
+     * returns the replicators current status: its activity level and progress.
+     *
+     * @function
+     */
+    getStatus():Promise<ReplicatorStatus> {
+        return this._engine.replicator_GetStatus({replicatorId: this._replicatorId});
+    }
+
+    /**
+     * Starts the replicator with an option to reset the local checkpoint of the replicator. When the
+     * local checkpoint is reset, the replicator will sync all changes since the beginning of time from
+     * the remote database.
+     *
+     * This method returns immediately; the replicator runs asynchronously and will report its progress
+     * through the replicator change notification.
+     *
+     * @function
+     *
+     * @param {boolean} reset Resets the local checkpoint before starting the replicator.
+     */
+    async start(reset: boolean | undefined): Promise<void> {
+        if (this._replicatorId !== undefined && reset) {
             await this._engine.replicator_Restart({
                 replicatorId: this._replicatorId,
             });
@@ -56,20 +91,15 @@ export class Replicator {
         await this._engine.replicator_Start({replicatorId: this._replicatorId});
     }
 
-    async cleanup():Promise<void> {
-        await this._engine.replicator_Cleanup({replicatorId: this._replicatorId});
-        this._replicatorId = null;
-    }
-
+    /**
+     * Stops a running replicator. This method returns immediately; when the replicator actually
+     * stops, the replicator will change its status's activity level to
+     * `ReplicatorActivityLevel.STOPPED` and the replicator change notification will be notified
+     * accordingly.
+     *
+     * @function
+     */
     stop():Promise<void> {
         return this._engine.replicator_Stop({replicatorId: this._replicatorId});
-    }
-
-    resetCheckpoint():Promise<void> {
-        return this._engine.replicator_ResetCheckpoint({replicatorId: this._replicatorId});
-    }
-
-    getStatus():Promise<ReplicatorStatus> {
-        return this._engine.replicator_GetStatus({replicatorId: this._replicatorId});
     }
 }
