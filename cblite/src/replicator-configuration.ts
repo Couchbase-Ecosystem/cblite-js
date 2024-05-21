@@ -26,24 +26,30 @@ export class ReplicatorConfiguration {
     private acceptParentDomainCookies: boolean;
     private readonly collections: Map<Collection[], CollectionConfig>;
 
+    public static defaultContinuous:boolean = false;
+    public static defaultEnableAutoPurge:boolean = true;
     public static defaultSelfSignedCertificateOnly:boolean = true;
     public static defaultAcceptParentDomainCookies:boolean = false;
     public static defaultAllowReplicatingInBackground:boolean = false;
     public static defaultHeartbeat:number = 300;
     public static defaultMaxAttemptsSingleShot: number = 10;
+    public static defaultMaxAttemptsWaitTime: number = 300;
 
     constructor(private target: Endpoint) {
         this.replicatorType = ReplicatorType.PUSH_AND_PULL;
         this.target = target;
         this.collections = new Map();
 
-        this.continuous = false;
-        this.autoPurgeEnabled = true;
+        this.continuous = ReplicatorConfiguration.defaultContinuous;
+        this.autoPurgeEnabled = ReplicatorConfiguration.defaultEnableAutoPurge;
         this.heartbeat = ReplicatorConfiguration.defaultHeartbeat;
         this.acceptOnlySelfSignedCerts = ReplicatorConfiguration.defaultSelfSignedCertificateOnly;
         this.acceptParentDomainCookies = ReplicatorConfiguration.defaultAcceptParentDomainCookies;
         this.allowReplicatingInBackground = ReplicatorConfiguration.defaultAllowReplicatingInBackground;
         this.maxAttempts = ReplicatorConfiguration.defaultMaxAttemptsSingleShot;
+        this.maxAttemptWaitTime = ReplicatorConfiguration.defaultMaxAttemptsWaitTime;
+        this.authenticator = undefined;
+        this.headers = undefined;
     }
 
 

@@ -1,6 +1,8 @@
 import { TestCase } from './test-case';
 import { ITestResult } from './test-result.types';
-import {ReplicatorConfiguration, URLEndpoint} from 'cblite';
+import {ReplicatorConfiguration, ReplicatorType, URLEndpoint} from 'cblite';
+import {expect} from "chai";
+
 /**
  * ReplicatorTests - reminder all test cases must start with 'test' in the name of the method or they will not run
  * */
@@ -18,12 +20,36 @@ export class ReplicatorTests extends TestCase {
     const config = new ReplicatorConfiguration(target);
     config.addCollection(this.collection);
 
-    return {
-      testName: 'testReplicatorConfigDefaultValues',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
+    try {
+      expect(config.getCollections().length).to.be.equal(1);
+      expect(config.getCollections()[0][0]).to.be.equal(this.collection);
+      expect(config.getReplicatorType()).to.be.equal(ReplicatorType.PUSH_AND_PULL);
+
+      expect(config.getAcceptOnlySelfSignedCerts()).to.be.equal(ReplicatorConfiguration.defaultSelfSignedCertificateOnly);
+      expect(config.getAllowReplicatingInBackground()).to.be.equal(ReplicatorConfiguration.defaultAllowReplicatingInBackground);
+      expect(config.getAcceptParentDomainCookies()).to.be.equal(ReplicatorConfiguration.defaultAcceptParentDomainCookies);
+      expect(config.getAutoPurgeEnabled()).to.be.equal(ReplicatorConfiguration.defaultEnableAutoPurge);
+      expect(config.getContinuous()).to.be.equal(ReplicatorConfiguration.defaultContinuous);
+      expect(config.getHeartbeat()).to.be.equal(ReplicatorConfiguration.defaultHeartbeat);
+      expect(config.getMaxAttempts()).to.be.equal(ReplicatorConfiguration.defaultMaxAttemptsSingleShot);
+      expect(config.getMaxAttemptWaitTime()).to.be.equal(ReplicatorConfiguration.defaultMaxAttemptsWaitTime);
+
+      expect(config.getHeaders()).to.be.equal(undefined);
+      expect(config.getAuthenticator()).to.be.equal(undefined);
+      return {
+        testName: 'testReplicatorConfigDefaultValues',
+        success: true,
+        message: `success`,
+        data: undefined,
+      };
+    } catch (error) {
+        return {
+          testName: 'testReplicatorConfigDefaultValues',
+          success: false,
+          message: `Error: ${error}`,
+          data: undefined,
+        };
+    }
   }
 
   /**
