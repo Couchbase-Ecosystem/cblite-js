@@ -12,6 +12,20 @@ export enum ReplicatorType {
 export class ReplicatorConfiguration {
     static readonly ReplicatorType = ReplicatorType;
 
+    // Authentication dictionary keys:
+    static CBLReplicatorOptionCookies = "cookies";  // HTTP Cookie header value; string
+    static CBLReplicatorAuthOption = "auth";       // Auth settings; Dict
+    static CBLReplicatorAuthType = "type"; // Auth property; string
+    static CBLReplicatorAuthUserName = "username"; // Auth property; string
+    static CBLReplicatorAuthPassword = "password"; // Auth property; string
+    static CBLReplicatorAuthClientCert = "clientCert"; // Auth property; value platform-dependent
+
+    // auth.type values:
+    static CBLAuthTypeBasic = "Basic"; // HTTP Basic (the default)
+    static CBLAuthTypeSession = "Session"; // SG session cookie
+    static CBLAuthTypeOpenIDConnect = "OpenID Connect";
+    static CBLAuthTypeClientCert = "Client Cert";
+
     private continuous:boolean;
     private replicatorType: ReplicatorType;
     private authenticator: Authenticator;

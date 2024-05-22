@@ -1,5 +1,5 @@
 import {CouchbaseLiteException} from "./couchbase-lite-exception";
-import {ReplicatorActivityLevel} from "./replicator";
+import {ReplicatorActivityLevel} from "./replicator-activity-level";
 import {ReplicatorProgress} from "./replicator-progress";
 
 export class ReplicatorStatus {

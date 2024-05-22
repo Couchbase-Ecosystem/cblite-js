@@ -39,7 +39,7 @@ export class Replicator {
     /**
      * returns the replicator id used to manage the replicator between the engine and the replicator
      * native implementation.  This value should get set when the replicator is created in the native
-     * engine via the start method.
+     * t engine via the start method.
      * @function
      *
      */

@@ -9,11 +9,11 @@ export class BasicAuthenticator extends Authenticator {
 
   authenticate(options: Dictionary) {
     const auth = {
-      [ReplicatorConfiguration.kC4ReplicatorAuthType]: ReplicatorConfiguration.kC4AuthTypeBasic,
-      [ReplicatorConfiguration.kCBLReplicatorAuthUserName]: this.username,
-      [ReplicatorConfiguration.kCBLReplicatorAuthPassword]: this.password,
+      [ReplicatorConfiguration.CBLReplicatorAuthType]: ReplicatorConfiguration.CBLAuthTypeBasic,
+      [ReplicatorConfiguration.CBLReplicatorAuthUserName]: this.username,
+      [ReplicatorConfiguration.CBLReplicatorAuthPassword]: this.password,
     };
-    options[ReplicatorConfiguration.kCBLReplicatorAuthOption] = auth;
+    options[ReplicatorConfiguration.CBLReplicatorAuthOption] = auth;
     return auth;
   }
 
