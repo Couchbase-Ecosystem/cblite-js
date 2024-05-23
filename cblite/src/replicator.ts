@@ -14,7 +14,7 @@ export class Replicator {
     private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
 
     /**
-     * Initializes a replicator with the given configuration.
+     * Initializes a replicator with the given configuration
      *
      * @param config
      */
