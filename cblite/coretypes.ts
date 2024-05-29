@@ -410,20 +410,24 @@ export interface ReplicatorArgs {
     replicatorId: string;
 }
 
-/**
- * Represents arguments in removing a replication change listener
- *
- * @interface
- */
-export interface ReplicatorRemoveChangeListenerArgs extends ReplicatorArgs {
-    changeListenerToken: string;
-}
+
 
 // implementation for Replicator Change Listener
 export type ReplicatorChangeListener = (change: ReplicatorStatusChange) => void;
 
 export interface ReplicatorCreateArgs {
-    config: ReplicatorConfiguration;
+    config: any
+}
+
+/**
+ * Represents arguments in a change in a collection.
+ *
+ * This interface is used set up a collection change listener
+ *
+ * @interface
+ */
+export interface ReplicationChangeListenerArgs extends ReplicatorArgs {
+    changeListenerToken: string;
 }
 
 export interface ReplicatorStatusChange {
@@ -673,15 +677,15 @@ export interface ICoreEngine {
     // Replicator
     //***********
     replicator_AddChangeListener(
-        args: ReplicatorArgs,
+        args: ReplicationChangeListenerArgs,
         lcb: ListenerCallback)
         : Promise<ListenerHandle>;
 
     replicator_Cleanup(args: ReplicatorArgs): Promise<void>;
 
     replicator_Create(
-        args: ReplicatorCreateArgs
-    ): Promise<{ replicatorId: string }>;
+        args: any
+    ): Promise<ReplicatorArgs>;
 
     replicator_GetStatus(args: ReplicatorArgs): Promise<ReplicatorStatus>;
 
@@ -691,7 +695,7 @@ export interface ICoreEngine {
 
     replicator_Stop(args: ReplicatorArgs): Promise<void>;
 
-    replication_RemoveChangeListener(args: ReplicatorRemoveChangeListenerArgs)
+    replicator_RemoveChangeListener(args: ReplicationChangeListenerArgs)
         : Promise<void>;
 
     replicator_ResetCheckpoint(args: ReplicatorArgs): Promise<void>;

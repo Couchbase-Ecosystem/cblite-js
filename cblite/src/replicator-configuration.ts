@@ -64,6 +64,7 @@ export class ReplicatorConfiguration {
         this.maxAttemptWaitTime = ReplicatorConfiguration.defaultMaxAttemptsWaitTime;
         this.authenticator = undefined;
         this.headers = undefined;
+        this.pinnedServerCertificate = undefined;
     }
 
 
@@ -483,21 +484,80 @@ export class ReplicatorConfiguration {
         this.replicatorType = replicatorType;
     }
 
-    toJson() {
-        return {
-            replicatorType: this.replicatorType,
-            collectionConfigs: this.collections,
+    toJson() : any {
+        let config =  {
+            acceptParentDomainCookies: this.acceptParentDomainCookies,
+            acceptSelfSignedCerts: this.acceptOnlySelfSignedCerts,
+            allowReplicationInBackground: this.allowReplicatingInBackground,
+            autoPurgeEnabled: this.autoPurgeEnabled,
+            authenticator: null,
+            collectionConfig: null,
             continuous: this.continuous,
-            authenticator: {type: this.authenticator.getType(), data: this.authenticator.toJson()},
-            target: this.target.toJson(),
-            headers: this.headers,
+            headers: null,
             heartbeat: this.heartbeat,
             maxAttempts: this.maxAttempts,
             maxAttemptWaitTime: this.maxAttemptWaitTime,
-            pinnedServerCertificate: this.pinnedServerCertificate,
-            autoPurgeEnabled: this.autoPurgeEnabled,
-            acceptParentDomainCookies: this.acceptParentDomainCookies,
-            selfSignedCerts: this.acceptOnlySelfSignedCerts
+            pinnedServerCertificate: null,
+            replicatorType: this.replicatorType,
+            target: this.target.toJson(),
+        };
+
+        if (this.headers !== undefined) {
+            config.headers = this.headers;
+        } else {
+            config.headers = "";
         }
+        if (this.pinnedServerCertificate !== undefined)
+        {
+            config.pinnedServerCertificate = this.pinnedServerCertificate;
+        } else {
+            config.pinnedServerCertificate = "";
+        }
+        if (this.authenticator !== undefined) {
+            config.authenticator = {type: this.authenticator.getType(), data: this.authenticator.toJson()};
+        } else {
+            config.authenticator = "";
+        }
+        if (this.collections.size > 0) {
+            if (this.checkCollectionsScopeAndDatabase()) {
+                const colArray = [];
+                for (let [collections, collectionConfig] of this.collections) {
+                    const collectionsArray = [];
+                    for (let collection of collections) {
+                        collectionsArray.push({collection: collection.toJson()});
+                    }
+                    if (collectionConfig !== undefined || collectionConfig !== null) {
+                        colArray.push({collections: collectionsArray, config: collectionConfig});
+                    } else {
+                        colArray.push({collections: collectionsArray, config: ""});
+                    }
+                }
+                config.collectionConfig = JSON.stringify(colArray);
+
+            } else {
+                throw new Error("All collections must be from the same database and scope");
+            }
+        } else {
+            config.collectionConfig = "";
+        }
+        return config;
+    }
+
+    private checkCollectionsScopeAndDatabase(): boolean {
+        let databaseName: string = null;
+        let scopeName: string = null;
+
+        for (let [collections, _] of this.collections) {
+            for (let collection of collections) {
+                if (databaseName === null && scopeName === null) {
+                    databaseName = collection.database.getName();
+                    scopeName = collection.scope.name;
+                } else if (collection.database.getName() !== databaseName || collection.scope.name !== scopeName) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

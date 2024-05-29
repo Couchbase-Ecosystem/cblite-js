@@ -1,6 +1,13 @@
 import { TestCase } from './test-case';
 import { ITestResult } from './test-result.types';
-import {ReplicatorConfiguration, ReplicatorType, URLEndpoint} from 'cblite';
+import {
+  BasicAuthenticator,
+  Replicator,
+  ReplicatorActivityLevel,
+  ReplicatorConfiguration,
+  ReplicatorType,
+  URLEndpoint
+} from 'cblite';
 import {expect} from "chai";
 
 /**
@@ -46,7 +53,7 @@ export class ReplicatorTests extends TestCase {
         return {
           testName: 'testReplicatorConfigDefaultValues',
           success: false,
-          message: `Error: ${error}`,
+          message: error,
           data: undefined,
         };
     }
@@ -57,12 +64,50 @@ export class ReplicatorTests extends TestCase {
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
   async testEmptyPush(): Promise<ITestResult> {
-    return {
-      testName: 'testEmptyPush',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
+    try {
+      const target = new URLEndpoint('ws://localhost:4984/db');
+      const auth = new BasicAuthenticator('user', 'password');
+      const config = new ReplicatorConfiguration(target);
+      config.addCollection(this.defaultCollection);
+
+      const replicator = await Replicator.create(config);
+      const token = await replicator.addChangeListener((change) => {
+        const error = change.status.getError();
+        if (error !== null) {
+          return {
+            testName: 'testEmptyPush',
+            success: false,
+            message: error,
+            data: undefined,
+          };
+        } else {
+          if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
+            return {
+              testName: 'testEmptyPush',
+              success: true,
+              message: `success`,
+              data: undefined,
+            };
+          }
+        }
+      });
+      await replicator.start(false);
+      await replicator.stop();
+
+      return {
+        testName: 'testEmptyPush',
+        success: true,
+        message: `success`,
+        data: undefined,
+      };
+    } catch (error) {
+      return {
+        testName: 'testEmptyPush',
+        success: false,
+        message: `Error:${error}`,
+        data: undefined,
+      };
+    }
   }
 
   /**

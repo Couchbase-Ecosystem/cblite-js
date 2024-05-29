@@ -1,6 +1,6 @@
 import {ReplicatorConfiguration} from './replicator-configuration';
-import {uuid as v4} from './util/uuid';
-import {ICoreEngine} from "../coretypes";
+import {uuid, uuid as v4} from './util/uuid';
+import {ICoreEngine, ReplicatorChangeListener} from "../coretypes";
 import {EngineLocator} from "./engine-locator";
 import {ReplicatorStatus} from "./replicator-status";
 import {ReplicatorActivityLevel} from "./replicator-activity-level";
@@ -13,13 +13,60 @@ export class Replicator {
     private readonly _config: ReplicatorConfiguration;
     private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
 
+    //replication status change listener support
+    private _statusChangeListener: ReplicatorChangeListener;
+    private _didStartStatusChangeListener: boolean = false;
+
     /**
      * Initializes a replicator with the given configuration
      *
      * @param config
      */
-    constructor(config: ReplicatorConfiguration) {
+    private constructor(replicatorId: string, config: ReplicatorConfiguration) {
+        this._replicatorId = replicatorId;
         this._config = config;
+    }
+
+    /**
+     * Adds a replicator change listener for listening to status updates
+     *
+     * @function
+     *
+     */
+    async addChangeListener(listener: ReplicatorChangeListener): Promise<string> {
+        this._statusChangeListener = listener;
+        const token = uuid();
+        if (!this._didStartStatusChangeListener) {
+            await this._engine.replicator_AddChangeListener({
+                replicatorId: this._replicatorId,
+                changeListenerToken: token
+            }, (data, err) => {
+                if (err){
+                    throw err;
+                }
+                this.notifyStatusChange(data);
+            });
+            this._didStartStatusChangeListener = true;
+            return token;
+        } else {
+            throw new Error("Listener already started")
+        }
+    }
+
+    static async create(config: ReplicatorConfiguration): Promise<Replicator> {
+        if (config.getCollections().length === 0) {
+            throw new Error("No collections specified in the configuration");
+        }
+        const engine = EngineLocator.getEngine(EngineLocator.key);
+        const configJson = config.toJson();
+        const ret = await engine
+            .replicator_Create({config: configJson});
+        const replicator = new Replicator(ret.replicatorId, config);
+        return replicator;
+    }
+
+    private notifyStatusChange(data: any) {
+        this._statusChangeListener(data);
     }
 
     /**
@@ -65,6 +112,23 @@ export class Replicator {
     }
 
     /**
+     * Removes a change listener with the given listener token.
+     *
+     * @function
+     *
+     */
+    async removeChangeListener(token: string):Promise<void> {
+        try {
+            await this._engine.replicator_RemoveChangeListener({
+                replicatorId: this._replicatorId,
+                changeListenerToken: token
+            });
+        } catch (error){
+            throw error;
+        }
+    }
+
+    /**
      * Starts the replicator with an option to reset the local checkpoint of the replicator. When the
      * local checkpoint is reset, the replicator will sync all changes since the beginning of time from
      * the remote database.
@@ -77,17 +141,12 @@ export class Replicator {
      * @param {boolean} reset Resets the local checkpoint before starting the replicator.
      */
     async start(reset: boolean | undefined): Promise<void> {
-        if (this._replicatorId !== undefined && reset) {
+        if (reset) {
             await this._engine.replicator_Restart({
                 replicatorId: this._replicatorId,
             });
             return;
         }
-
-        const ret = await this._engine
-            .replicator_Create({config: this._config});
-        this._replicatorId = ret.replicatorId;
-
         await this._engine.replicator_Start({replicatorId: this._replicatorId});
     }
 
