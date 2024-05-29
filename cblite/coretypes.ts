@@ -15,7 +15,7 @@ import {
     ReplicatorConfiguration,
     Result,
     ResultSet,
-    Scope,
+    Scope, DocumentReplication, DocumentReplicationRepresentation,
 } from "./src";
 
 /**
@@ -410,10 +410,13 @@ export interface ReplicatorArgs {
     replicatorId: string;
 }
 
-
+export interface ReplicatorCollectionArgs extends ReplicatorArgs, CollectionArgs { }
 
 // implementation for Replicator Change Listener
 export type ReplicatorChangeListener = (change: ReplicatorStatusChange) => void;
+
+//implementation for Replicator Document Change Listener
+export  type ReplicatorDocumentChangeListener = (change: DocumentReplicationRepresentation) => void;
 
 export interface ReplicatorCreateArgs {
     config: any
@@ -681,6 +684,11 @@ export interface ICoreEngine {
         lcb: ListenerCallback)
         : Promise<ListenerHandle>;
 
+    replicator_AddDocumentChangeListener(
+        args: ReplicationChangeListenerArgs,
+        lcb: ListenerCallback)
+        : Promise<ListenerHandle>;
+
     replicator_Cleanup(args: ReplicatorArgs): Promise<void>;
 
     replicator_Create(
@@ -689,9 +697,9 @@ export interface ICoreEngine {
 
     replicator_GetStatus(args: ReplicatorArgs): Promise<ReplicatorStatus>;
 
-    replicator_Start(args: ReplicatorArgs): Promise<void>;
+    replicator_GetPendingDocumentIds(args: ReplicatorCollectionArgs): Promise<{ pendingDocumentIds: string[] }>;
 
-    replicator_Restart(args: ReplicatorArgs): Promise<void>;
+    replicator_Start(args: ReplicatorArgs): Promise<void>;
 
     replicator_Stop(args: ReplicatorArgs): Promise<void>;
 

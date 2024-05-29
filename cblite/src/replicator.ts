@@ -1,13 +1,14 @@
 import {ReplicatorConfiguration} from './replicator-configuration';
 import {uuid, uuid as v4} from './util/uuid';
-import {ICoreEngine, ReplicatorChangeListener} from "../coretypes";
+import {ICoreEngine, ReplicatorChangeListener, ReplicatorDocumentChangeListener} from "../coretypes";
 import {EngineLocator} from "./engine-locator";
 import {ReplicatorStatus} from "./replicator-status";
 import {ReplicatorActivityLevel} from "./replicator-activity-level";
+import {ReplicatorProgress} from "./replicator-progress";
+import {DocumentReplicationRepresentation, isDocumentReplicationRepresentation} from "./document-replication";
+import {Collection} from "./collection";
 
 export class Replicator {
-    readonly ActivityLevel:ReplicatorActivityLevel = undefined;
-
     private _replicatorId: string = undefined;
     private status: ReplicatorStatus;
     private readonly _config: ReplicatorConfiguration;
@@ -17,6 +18,7 @@ export class Replicator {
     private _statusChangeListener: ReplicatorChangeListener;
     private _didStartStatusChangeListener: boolean = false;
 
+    private _documentChangeListener: Map<String, ReplicatorDocumentChangeListener>;
     /**
      * Initializes a replicator with the given configuration
      *
@@ -25,6 +27,7 @@ export class Replicator {
     private constructor(replicatorId: string, config: ReplicatorConfiguration) {
         this._replicatorId = replicatorId;
         this._config = config;
+        this._documentChangeListener = new Map<String, ReplicatorDocumentChangeListener>();
     }
 
     /**
@@ -41,7 +44,7 @@ export class Replicator {
                 replicatorId: this._replicatorId,
                 changeListenerToken: token
             }, (data, err) => {
-                if (err){
+                if (err) {
                     throw err;
                 }
                 this.notifyStatusChange(data);
@@ -51,6 +54,23 @@ export class Replicator {
         } else {
             throw new Error("Listener already started")
         }
+    }
+
+    async addDocumentChangeListener(listener: ReplicatorDocumentChangeListener): Promise<string> {
+        const token = uuid();
+        this._documentChangeListener.set(token, listener);
+        await this._engine.replicator_AddDocumentChangeListener({ replicatorId: this._replicatorId, changeListenerToken: token}, (data, err) => {
+            if (err) {
+                throw err;
+            }
+            if (isDocumentReplicationRepresentation(data)) {
+                this.notifyDocumentChange(data, token);
+            } else {
+                throw new Error("Invalid document replication change notification");
+            }
+
+        });
+        return token;
     }
 
     static async create(config: ReplicatorConfiguration): Promise<Replicator> {
@@ -65,8 +85,32 @@ export class Replicator {
         return replicator;
     }
 
+    private notifyDocumentChange(data: DocumentReplicationRepresentation, token: String) {
+        const documents = data.documents.map((doc) => {
+            return {
+                scopeName: doc.scopeName,
+                collectionName: doc.collectionName,
+                id: doc.id,
+                flags: doc.flags,
+                error: doc.error
+            };
+        });
+        const documentReplication = {isPush: data.isPush, documents: documents};
+        this._documentChangeListener.get(token)(documentReplication);
+    }
+
     private notifyStatusChange(data: any) {
-        this._statusChangeListener(data);
+        let status: ReplicatorStatus | undefined = undefined;
+        const activityLevel= Number(data.activityLevel) as ReplicatorActivityLevel;
+        const replicatorProgress = new ReplicatorProgress(data.progress.completed, data.progress.total);
+        if (data.error && typeof data.error.message === "string") {
+            status = new ReplicatorStatus(activityLevel, replicatorProgress, data.error.message);
+
+        } else {
+            status = new ReplicatorStatus(activityLevel, replicatorProgress, undefined);
+        }
+        const statusChange = { status: status};
+        this._statusChangeListener(statusChange);
     }
 
     /**
@@ -78,7 +122,7 @@ export class Replicator {
      * @function
      *
      */
-    async cleanup():Promise<void> {
+    async cleanup(): Promise<void> {
         await this._engine.replicator_Cleanup({replicatorId: this._replicatorId});
         this._replicatorId = null;
     }
@@ -90,7 +134,7 @@ export class Replicator {
      * @function
      *
      */
-    getId() : string | undefined {
+    getId(): string | undefined {
         return this._replicatorId;
     }
 
@@ -98,7 +142,7 @@ export class Replicator {
      * returns a copy of the replicators current configuration.
      * @function
      */
-    getConfiguration():ReplicatorConfiguration {
+    getConfiguration(): ReplicatorConfiguration {
         return this._config;
     }
 
@@ -107,8 +151,21 @@ export class Replicator {
      *
      * @function
      */
-    getStatus():Promise<ReplicatorStatus> {
+    getStatus(): Promise<ReplicatorStatus> {
         return this._engine.replicator_GetStatus({replicatorId: this._replicatorId});
+    }
+
+    /**
+     * Get pending document ids for the given collection. If the given collection is not part of the replication, an error will be thrown.
+     *
+     * @function
+     */
+    async getPendingDocumentIds(collection: Collection): Promise<{pendingDocumentIds: string[] }>{
+        const collections = this._config.getCollections();
+        if (!collections.includes(collection)) {
+            throw new Error("Collection not part of the replication");
+        }
+        return await this._engine.replicator_GetPendingDocumentIds({replicatorId: this._replicatorId, collectionName: collection.name, scopeName: collection.scope.name, name: collection.database.getName() });
     }
 
     /**
@@ -117,13 +174,13 @@ export class Replicator {
      * @function
      *
      */
-    async removeChangeListener(token: string):Promise<void> {
+    async removeChangeListener(token: string): Promise<void> {
         try {
             await this._engine.replicator_RemoveChangeListener({
                 replicatorId: this._replicatorId,
                 changeListenerToken: token
             });
-        } catch (error){
+        } catch (error) {
             throw error;
         }
     }
@@ -142,7 +199,7 @@ export class Replicator {
      */
     async start(reset: boolean | undefined): Promise<void> {
         if (reset) {
-            await this._engine.replicator_Restart({
+            await this._engine.replicator_ResetCheckpoint({
                 replicatorId: this._replicatorId,
             });
             return;
@@ -158,7 +215,7 @@ export class Replicator {
      *
      * @function
      */
-    stop():Promise<void> {
+    stop(): Promise<void> {
         return this._engine.replicator_Stop({replicatorId: this._replicatorId});
     }
 }

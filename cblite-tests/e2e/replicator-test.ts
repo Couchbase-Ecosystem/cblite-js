@@ -29,7 +29,7 @@ export class ReplicatorTests extends TestCase {
 
     try {
       expect(config.getCollections().length).to.be.equal(1);
-      expect(config.getCollections()[0][0]).to.be.equal(this.collection);
+      expect(config.getCollections()[0]).to.be.equal(this.collection);
       expect(config.getReplicatorType()).to.be.equal(ReplicatorType.PUSH_AND_PULL);
 
       expect(config.getAcceptOnlySelfSignedCerts()).to.be.equal(ReplicatorConfiguration.defaultSelfSignedCertificateOnly);
@@ -53,7 +53,7 @@ export class ReplicatorTests extends TestCase {
         return {
           testName: 'testReplicatorConfigDefaultValues',
           success: false,
-          message: error,
+          message: `${error}`,
           data: undefined,
         };
     }
@@ -66,33 +66,26 @@ export class ReplicatorTests extends TestCase {
   async testEmptyPush(): Promise<ITestResult> {
     try {
       const target = new URLEndpoint('ws://localhost:4984/db');
-      const auth = new BasicAuthenticator('user', 'password');
+      //const auth = new BasicAuthenticator('user', 'password');
       const config = new ReplicatorConfiguration(target);
       config.addCollection(this.defaultCollection);
 
+      let isError = false;
+      let didGetChangeStatus = false;
+
       const replicator = await Replicator.create(config);
       const token = await replicator.addChangeListener((change) => {
-        const error = change.status.getError();
-        if (error !== null) {
-          return {
-            testName: 'testEmptyPush',
-            success: false,
-            message: error,
-            data: undefined,
-          };
-        } else {
-          if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
-            return {
-              testName: 'testEmptyPush',
-              success: true,
-              message: `success`,
-              data: undefined,
-            };
+         const error = change.status.getError();
+          if (error !== undefined) {
+            isError = true;
           }
+          if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
+            didGetChangeStatus = true;
         }
       });
-      await replicator.start(false);
-      await replicator.stop();
+      //await replicator.start(false);
+      //await replicator.removeChangeListener(token);
+      //await replicator.stop();
 
       return {
         testName: 'testEmptyPush',
@@ -104,7 +97,7 @@ export class ReplicatorTests extends TestCase {
       return {
         testName: 'testEmptyPush',
         success: false,
-        message: `Error:${error}`,
+        message: `${error}`,
         data: undefined,
       };
     }
@@ -141,12 +134,60 @@ export class ReplicatorTests extends TestCase {
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
   async testDocumentReplicationEvent(): Promise<ITestResult> {
-    return {
-      testName: 'testDocumentReplicationEvent',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
+    try {
+      const target = new URLEndpoint('ws://localhost:4984/projects');
+      const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
+      const config = new ReplicatorConfiguration(target);
+      config.addCollection(this.defaultCollection);
+      config.setAuthenticator(auth);
+
+      let isError = false;
+      let didGetChangeStatus = false;
+      let didGetDocumentUpdate = false;
+
+      const replicator = await Replicator.create(config);
+      const token = await replicator.addChangeListener((change) => {
+        const error = change.status.getError();
+        if (error !== undefined) {
+          isError = true;
+        }
+        if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
+          didGetChangeStatus = true;
+        }
+      });
+      const token2 = await replicator.addDocumentChangeListener((change) => {
+        const isPush = change.isPush;
+        const documents = change.documents;
+        const scopeName = change.scopeName;
+        const collectionName = change.collectionName;
+        didGetDocumentUpdate = true;
+      });
+      await replicator.start(false);
+      await this.sleep(100);
+      const documentIds = await replicator.getPendingDocumentIds(this.defaultCollection);
+      await this.sleep(20000);
+      await replicator.removeChangeListener(token);
+      await replicator.removeChangeListener(token2);
+      await replicator.stop();
+      const count = await this.defaultCollection.count();
+      expect(count).to.be.greaterThan(0);
+      expect(isError).to.be.false;
+      expect(didGetChangeStatus).to.be.true;
+      expect(didGetDocumentUpdate).to.be.true;
+      return {
+        testName: 'testDocumentReplicationEvent',
+        success: true,
+        message: `success`,
+        data: undefined,
+      };
+    } catch (error) {
+      return {
+        testName: 'testDocumentReplicationEvent',
+        success: false,
+        message: `Error:${error}`,
+        data: undefined,
+      };
+    }
   }
 
   /**

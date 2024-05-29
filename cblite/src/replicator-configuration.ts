@@ -178,7 +178,8 @@ export class ReplicatorConfiguration {
      * @function
      */
     getCollections() {
-        return Array.from(this.collections.keys());
+        const keys = this.collections.keys();
+        return Array.from(keys).flat();
     }
 
     /**

@@ -6,8 +6,7 @@ export class ReplicatorStatus {
     constructor(
         private activityLevel: ReplicatorActivityLevel,
         private progress: ReplicatorProgress,
-        private error: CouchbaseLiteException,
-    ) {
+        private error: String | undefined) {
     }
 
     getActivityLevel() {
@@ -18,12 +17,16 @@ export class ReplicatorStatus {
         return this.progress;
     }
 
-    getError() {
+    getError() : String | undefined {
         return this.error;
     }
 
     toString() {
-        return `Status{activityLevel=${this.activityLevel}, progress=${this.progress}, error=${this.error}}`;
+        if (this.error !== undefined){
+            return `Status{activityLevel=${this.activityLevel}, progress=${this.progress}}, error=${this.error}`;
+        } else {
+            return `Status{activityLevel=${this.activityLevel}, progress=${this.progress}}`;
+        }
     }
 
     copy() {
