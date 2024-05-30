@@ -7,7 +7,8 @@ import {
     IndexBuilder,
     MutableDocument, Parameter, Parameters, Query
 } from "cblite";
-import {expect} from "chai";
+
+import { expect } from "chai";
 
 /**
  * QueryTests - reminder all test cases must start with 'test' in the name of the method or they will not run

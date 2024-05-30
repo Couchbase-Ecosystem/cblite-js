@@ -361,4 +361,13 @@ export class Collection {
         const id = ret._id;
         document.setId(id);
     }
+
+    toJson() : any {
+        return {
+                name: this.name,
+                scopeName: this.scope.name,
+                databaseName: this.database.getName()
+        }
+    }
+
 }

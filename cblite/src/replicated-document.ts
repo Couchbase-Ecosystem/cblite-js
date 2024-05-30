@@ -1,4 +1,5 @@
-import { CouchbaseLiteException } from "./couchbase-lite-exception";
+import { Collection } from "./collection";
+import { Scope } from "./scope";
 
 export enum ReplicatedDocumentFlag {
   DELETED = "DELETED",
@@ -9,7 +10,9 @@ export class ReplicatedDocument {
   constructor(
     protected id: string,
     protected flags: ReplicatedDocumentFlag[],
-    protected error: CouchbaseLiteException = null
+    protected error: String = undefined,
+    protected scopeName: String,
+    protected collectionName: String
   ) {}
 
   getId(): string {
@@ -20,18 +23,18 @@ export class ReplicatedDocument {
     return this.flags;
   }
 
-  getError(): CouchbaseLiteException {
+  getError(): String | undefined {
     return this.error;
   }
 }
 
 export interface ReplicatedDocumentRepresentation {
-  id: string
-  flags: string[]
+  id: string,
+  flags: string[],
+  scopeName: string,
+  collectionName: string,
   error: {
     message: string;
-    domain: string;
-    code: number;
   }
 }
 
@@ -48,7 +51,7 @@ export function isReplicatedDocumentRepresentation(obj: any): obj is ReplicatedD
       throw "document id cannot be null";
     }
     if (object.error != null) {
-      if (object.error.message == null || object.error.domain == null || object.error.code == null) {
+      if (object.error.message == null) {
         throw "document error is incomplete";
       }
     }

@@ -4,19 +4,14 @@ import {
   isReplicatedDocumentRepresentation,
 } from './replicated-document';
 
-export enum ReplicationDirection {
-  PUSH = 'PUSH',
-  PULL = 'PULL',
-}
-
 export class DocumentReplication {
   constructor(
-    protected direction: ReplicationDirection,
-    protected documents: ReplicatedDocument[],
+    protected isPush: boolean,
+    protected documents: ReplicatedDocument[]
   ) {}
 
-  getDirection(): ReplicationDirection {
-    return this.direction;
+  getIsPush(): boolean {
+    return this.isPush
   }
 
   getDocuments(): ReplicatedDocument[] {
@@ -25,7 +20,7 @@ export class DocumentReplication {
 }
 
 export interface DocumentReplicationRepresentation {
-  direction: string;
+  isPush: boolean;
   documents: ReplicatedDocumentRepresentation[];
 }
 
@@ -39,11 +34,9 @@ export function isDocumentReplicationRepresentation(
         throw 'invalid replicated document';
       }
     });
-    const direction: ReplicationDirection | undefined = (<any>(
-      ReplicationDirection
-    ))[object.direction];
-    if (direction == undefined) {
-      throw 'unrecognized replication direction ' + object.direction;
+    const isPush: boolean | undefined = object.isPush;
+    if (isPush == undefined) {
+      throw 'unrecognized replication isPush ';
     }
     return true;
   } catch (e) {

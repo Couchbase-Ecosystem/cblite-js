@@ -15,7 +15,7 @@ import {
     ReplicatorConfiguration,
     Result,
     ResultSet,
-    Scope,
+    Scope, DocumentReplication, DocumentReplicationRepresentation,
 } from "./src";
 
 /**
@@ -410,11 +410,27 @@ export interface ReplicatorArgs {
     replicatorId: string;
 }
 
+export interface ReplicatorCollectionArgs extends ReplicatorArgs, CollectionArgs { }
+
 // implementation for Replicator Change Listener
 export type ReplicatorChangeListener = (change: ReplicatorStatusChange) => void;
 
+//implementation for Replicator Document Change Listener
+export  type ReplicatorDocumentChangeListener = (change: DocumentReplicationRepresentation) => void;
+
 export interface ReplicatorCreateArgs {
-    config: ReplicatorConfiguration;
+    config: any
+}
+
+/**
+ * Represents arguments in a change in a collection.
+ *
+ * This interface is used set up a collection change listener
+ *
+ * @interface
+ */
+export interface ReplicationChangeListenerArgs extends ReplicatorArgs {
+    changeListenerToken: string;
 }
 
 export interface ReplicatorStatusChange {
@@ -663,19 +679,32 @@ export interface ICoreEngine {
     //***********
     // Replicator
     //***********
+    replicator_AddChangeListener(
+        args: ReplicationChangeListenerArgs,
+        lcb: ListenerCallback)
+        : Promise<ListenerHandle>;
+
+    replicator_AddDocumentChangeListener(
+        args: ReplicationChangeListenerArgs,
+        lcb: ListenerCallback)
+        : Promise<ListenerHandle>;
+
     replicator_Cleanup(args: ReplicatorArgs): Promise<void>;
 
     replicator_Create(
-        args: ReplicatorCreateArgs
-    ): Promise<{ replicatorId: string }>;
+        args: any
+    ): Promise<ReplicatorArgs>;
 
     replicator_GetStatus(args: ReplicatorArgs): Promise<ReplicatorStatus>;
 
+    replicator_GetPendingDocumentIds(args: ReplicatorCollectionArgs): Promise<{ pendingDocumentIds: string[] }>;
+
     replicator_Start(args: ReplicatorArgs): Promise<void>;
 
-    replicator_Restart(args: ReplicatorArgs): Promise<void>;
-
     replicator_Stop(args: ReplicatorArgs): Promise<void>;
+
+    replicator_RemoveChangeListener(args: ReplicationChangeListenerArgs)
+        : Promise<void>;
 
     replicator_ResetCheckpoint(args: ReplicatorArgs): Promise<void>;
 

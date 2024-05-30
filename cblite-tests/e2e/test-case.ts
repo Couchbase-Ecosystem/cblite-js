@@ -402,4 +402,8 @@ export class TestCase {
         }
         return 0;
     }
+
+    sleep(ms: number) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
 }

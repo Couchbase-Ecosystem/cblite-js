@@ -28,6 +28,7 @@ export * from './parameter';
 export * from './parameters';
 export * from './query';
 export * from './replicator';
+export * from './replicator-activity-level';
 export * from './replicator-progress';
 export * from './replicator-status';
 export * from './replicator-change';

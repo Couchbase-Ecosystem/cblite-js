@@ -1,4 +1,4 @@
-import { ReplicatorActivityLevel } from "./replicator";
+import { ReplicatorActivityLevel } from "./replicator-activity-level";
 
 export interface ReplicatorChange {
   activityLevel: ReplicatorActivityLevel;

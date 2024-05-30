@@ -10,13 +10,13 @@ export class SessionAuthenticator extends Authenticator {
   }
 
   authenticate(options: Dictionary) {
-    const current = options[ReplicatorConfiguration.kC4ReplicatorOptionCookies] || '';
+    const current = options[ReplicatorConfiguration.CBLReplicatorOptionCookies] || '';
     let cookieStr = current;
     if (current.length) {
       cookieStr += '; ';
     }
     cookieStr += `${this.cookieName}=${this.sessionID}`;
-    options[ReplicatorConfiguration.kC4ReplicatorOptionCookies] = cookieStr;
+    options[ReplicatorConfiguration.CBLReplicatorOptionCookies] = cookieStr;
   }
 
   getSessionID() {
