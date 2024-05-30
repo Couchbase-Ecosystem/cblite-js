@@ -28,6 +28,7 @@ export class ReplicatorTests extends TestCase {
     config.addCollection(this.collection);
 
     try {
+      //check to make sure that the default values are being set in the configuration
       expect(config.getCollections().length).to.be.equal(1);
       expect(config.getCollections()[0]).to.be.equal(this.collection);
       expect(config.getReplicatorType()).to.be.equal(ReplicatorType.PUSH_AND_PULL);
@@ -63,44 +64,154 @@ export class ReplicatorTests extends TestCase {
    *
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
-  async testEmptyPush(): Promise<ITestResult> {
+  async testReplicationStatusChangeListenerEvent(): Promise<ITestResult> {
     try {
-      const target = new URLEndpoint('ws://localhost:4984/db');
-      //const auth = new BasicAuthenticator('user', 'password');
+
+      //this is using the replication configuration from the Android Kotlin Learning path
+      //**TODO update to use the new configuration and endpoint**
+      const target = new URLEndpoint('ws://localhost:4984/projects');
+      const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
       const config = new ReplicatorConfiguration(target);
       config.addCollection(this.defaultCollection);
+      config.setAuthenticator(auth);
 
       let isError = false;
       let didGetChangeStatus = false;
 
       const replicator = await Replicator.create(config);
       const token = await replicator.addChangeListener((change) => {
-         const error = change.status.getError();
-          if (error !== undefined) {
-            isError = true;
-          }
-          if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
-            didGetChangeStatus = true;
+
+        //check to see if there was an error
+        const error = change.status.getError();
+        if (error !== undefined) {
+          isError = true;
         }
+        //get the status of the replicator using ReplicatorActivityLevel enum
+        if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
+          //do something because the replicator is now IDLE
+        }
+        didGetChangeStatus = true;
       });
-      //await replicator.start(false);
-      //await replicator.removeChangeListener(token);
-      //await replicator.stop();
+
+      //don't start with a new checkpoint by passing false to the start method
+      await replicator.start(false);
+      //we need to sleep to wait for the documents to replicate, no one would ever normally do this
+      //don't include in docs
+      await this.sleep(5000);
+
+      //this mimics what someone would do when the app needs to close to properly clean up the
+      //replicator and processes
+      await replicator.removeChangeListener(token);
+      await replicator.stop();
+
+      //validate we got documents replicated
+      const count = await this.defaultCollection.count();
+      expect(count.count).to.be.greaterThan(0);
+
+      //validate our listener was called and there wasn't errors
+      expect(isError).to.be.false;
+      expect(didGetChangeStatus).to.be.true;
 
       return {
-        testName: 'testEmptyPush',
+        testName: 'testReplicationStatusChangeListenerEvent',
         success: true,
         message: `success`,
         data: undefined,
       };
     } catch (error) {
       return {
-        testName: 'testEmptyPush',
+        testName: 'testReplicationStatusChangeListenerEvent',
         success: false,
         message: `${error}`,
         data: undefined,
       };
     }
+  }
+
+  /**
+   *
+   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
+   */
+  async testDocumentChangeListenerEvent(): Promise<ITestResult> {
+    try {
+
+      //this is using the replication configuration from the Android Kotlin Learning path
+      //**TODO update to use the new configuration and endpoint**
+      const target = new URLEndpoint('ws://localhost:4984/projects');
+      const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
+      const config = new ReplicatorConfiguration(target);
+      config.addCollection(this.defaultCollection);
+      config.setAuthenticator(auth);
+
+      let isError = false;
+      let didGetDocumentUpdate = false;
+
+      const replicator = await Replicator.create(config);
+
+      const token = await replicator.addDocumentChangeListener((change) => {
+        //check to see if the documents were pushed or pulled
+        //if isPush is true then the documents were pushed, else it was pulled
+        const isPush = change.isPush;
+        //loop through documents
+        for (const doc of change.documents) {
+            //details of each document along with if there was an error on that doc
+            const id = doc.id;
+            const flags = doc.flags;
+            const error = doc.error;
+            if (error !== undefined) {
+                isError = true;
+            }
+        }
+        didGetDocumentUpdate = true;
+      });
+
+      //don't start with a new checkpoint by passing false to the start method
+      await replicator.start(false);
+      //we need to sleep to wait for the documents to replicate, no one would ever normally do this
+      //don't include in docs
+      await this.sleep(5000);
+
+      //this mimics what someone would do when the app needs to close to properly clean up the
+      //replicator and processes
+      await replicator.removeChangeListener(token);
+      await replicator.stop();
+
+      //validate we got documents replicated
+      const count = await this.defaultCollection.count();
+      expect(count.count).to.be.greaterThan(0);
+
+      //validate our listener was called and there wasn't erorrs
+      expect(isError).to.be.false;
+      expect(didGetDocumentUpdate).to.be.true;
+
+      return {
+        testName: 'testDocumentChangeListenerEvent',
+        success: true,
+        message: `success`,
+        data: undefined,
+      };
+    } catch (error) {
+      return {
+        testName: 'testDocumentChangeListenerEvent',
+        success: false,
+        message: `Error:${error}`,
+        data: undefined,
+      };
+    }
+  }
+
+
+  /**
+   *
+   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
+   */
+  async testEmptyPush(): Promise<ITestResult> {
+    return {
+      testName: 'testEmptyPush',
+      success: false,
+      message: 'Not implemented',
+      data: undefined,
+    };
   }
 
   /**
@@ -127,67 +238,6 @@ export class ReplicatorTests extends TestCase {
       message: 'Not implemented',
       data: undefined,
     };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testDocumentReplicationEvent(): Promise<ITestResult> {
-    try {
-      const target = new URLEndpoint('ws://localhost:4984/projects');
-      const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
-      const config = new ReplicatorConfiguration(target);
-      config.addCollection(this.defaultCollection);
-      config.setAuthenticator(auth);
-
-      let isError = false;
-      let didGetChangeStatus = false;
-      let didGetDocumentUpdate = false;
-
-      const replicator = await Replicator.create(config);
-      const token = await replicator.addChangeListener((change) => {
-        const error = change.status.getError();
-        if (error !== undefined) {
-          isError = true;
-        }
-        if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
-          didGetChangeStatus = true;
-        }
-      });
-      const token2 = await replicator.addDocumentChangeListener((change) => {
-        const isPush = change.isPush;
-        const documents = change.documents;
-        const scopeName = change.scopeName;
-        const collectionName = change.collectionName;
-        didGetDocumentUpdate = true;
-      });
-      await replicator.start(false);
-      await this.sleep(100);
-      const documentIds = await replicator.getPendingDocumentIds(this.defaultCollection);
-      await this.sleep(20000);
-      await replicator.removeChangeListener(token);
-      await replicator.removeChangeListener(token2);
-      await replicator.stop();
-      const count = await this.defaultCollection.count();
-      expect(count).to.be.greaterThan(0);
-      expect(isError).to.be.false;
-      expect(didGetChangeStatus).to.be.true;
-      expect(didGetDocumentUpdate).to.be.true;
-      return {
-        testName: 'testDocumentReplicationEvent',
-        success: true,
-        message: `success`,
-        data: undefined,
-      };
-    } catch (error) {
-      return {
-        testName: 'testDocumentReplicationEvent',
-        success: false,
-        message: `Error:${error}`,
-        data: undefined,
-      };
-    }
   }
 
   /**
