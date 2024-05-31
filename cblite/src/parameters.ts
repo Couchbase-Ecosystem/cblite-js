@@ -64,7 +64,7 @@ export class Parameters {
         if (Object.keys(this._parameters).length > 0) {
             return this._parameters;
         } else {
-            {};
+            return {};
         }
     }
 
