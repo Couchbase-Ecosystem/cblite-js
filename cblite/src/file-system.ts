@@ -1,4 +1,4 @@
-import {ICoreEngine} from '../coretypes';
+import {ICoreEngine} from '../core-types';
 import {EngineLocator} from './engine-locator';
 
 export class FileSystem {

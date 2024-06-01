@@ -1,6 +1,6 @@
 import {ReplicatorConfiguration} from './replicator-configuration';
 import {uuid, uuid as v4} from './util/uuid';
-import {ICoreEngine, ReplicatorChangeListener, ReplicatorDocumentChangeListener} from "../coretypes";
+import {ICoreEngine, ReplicatorChangeListener, ReplicatorDocumentChangeListener} from "../core-types";
 import {EngineLocator} from "./engine-locator";
 import {ReplicatorStatus} from "./replicator-status";
 import {ReplicatorActivityLevel} from "./replicator-activity-level";

@@ -10,7 +10,7 @@ import {
     DocumentChangeListener,
     CollectionChangeListener,
     ICoreEngine
-} from "../coretypes";
+} from "../core-types";
 
 import {uuid} from "./util/uuid";
 

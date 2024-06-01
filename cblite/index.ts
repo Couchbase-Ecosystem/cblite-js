@@ -1,3 +1,3 @@
 //export the framework
-export * from './coretypes';
+export * from './core-types';
 export * from './src/index'

@@ -1,7 +1,7 @@
 import {
     ICoreEngine,
     QueryChangeListener
-} from "../coretypes";
+} from "../core-types";
 import {Database} from './database';
 import {EngineLocator} from "./engine-locator";
 import {ResultSet} from "./result";

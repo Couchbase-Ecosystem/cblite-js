@@ -7,15 +7,15 @@ import {
     Database,
     DatabaseConfiguration,
     DatabaseFileLoggingConfiguration,
+    DocumentReplicationRepresentation,
     Dictionary,
     Document,
     MaintenanceType,
     Query,
     ReplicatorStatus,
-    ReplicatorConfiguration,
     Result,
     ResultSet,
-    Scope, DocumentReplication, DocumentReplicationRepresentation,
+    Scope
 } from "./src";
 
 /**

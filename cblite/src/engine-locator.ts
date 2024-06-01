@@ -1,4 +1,4 @@
-import { ICoreEngine } from '../coretypes';
+import { ICoreEngine } from '../core-types';
 
 export class EngineLocator {
 	private static instance: EngineLocator;

@@ -7,7 +7,7 @@ import { DatabaseLogging } from './database-logging';
 import { AbstractIndex } from './abstract-index';
 import { EngineLocator } from './engine-locator';
 import { ConcurrencyControl } from './concurrency-control';
-import {CollectionsResult, ICoreEngine, ScopeArgs} from '../coretypes';
+import {CollectionsResult, ICoreEngine, ScopeArgs} from '../core-types';
 import { Collection } from './collection';
 import { Scope } from "./scope";
 import { Query } from "./query";
