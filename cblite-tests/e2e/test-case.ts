@@ -7,7 +7,7 @@ import {
     DatabaseConfiguration,
     Dictionary,
     uuid,
-} from 'cblite';
+} from '../../cblite';
 
 import {assert} from 'chai';
 

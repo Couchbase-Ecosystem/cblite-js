@@ -1,7 +1,7 @@
 import {TestCase} from './test-case';
 import {ITestResult} from './test-result.types';
 import {assert, expect} from 'chai';
-import {Blob, ConcurrencyControl, DatabaseConfiguration, FileSystem, MaintenanceType, MutableDocument} from 'cblite';
+import {Blob, ConcurrencyControl, DatabaseConfiguration, FileSystem, MaintenanceType, MutableDocument} from '../../cblite';
 
 /**
  * DatabaseTests - reminder all test cases must start with 'test' in the name of the method, or they will not run

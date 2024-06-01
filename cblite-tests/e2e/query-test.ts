@@ -1,12 +1,12 @@
 import {TestCase} from './test-case';
 import {ITestResult} from './test-result.types';
-import * as namesData from "./names_100.json";
+//import * as namesData from "./names_100.json";
 import {
     Collection,
     FullTextIndexItem,
     IndexBuilder,
-    MutableDocument, Parameter, Parameters, Query
-} from "cblite";
+    MutableDocument, Parameters, Query
+} from '../../cblite';
 
 import { expect } from "chai";
 

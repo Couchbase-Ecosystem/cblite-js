@@ -1,10 +1,10 @@
 import { TestCase } from './test-case';
 import { ITestResult } from './test-result.types';
 
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 
 //import the database which has a list of log levels and domains
-import { LogLevel, LogDomain, Database } from 'cblite';
+import { LogLevel, LogDomain  } from '../../cblite';
 
 /**
  * ConsoleLoggingTests - reminder all test cases must start with 'test' in the name of the method or they will not run

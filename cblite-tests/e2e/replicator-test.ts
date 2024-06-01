@@ -7,7 +7,7 @@ import {
   ReplicatorConfiguration,
   ReplicatorType,
   URLEndpoint
-} from 'cblite';
+} from '../../cblite';
 import {expect} from "chai";
 
 /**

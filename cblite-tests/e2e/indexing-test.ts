@@ -6,7 +6,7 @@ import {
     IndexBuilder,
     ValueIndexItem,
     FullTextIndexItem,
-} from 'cblite';
+} from '../../cblite';
 
 /**
  * IndexingTests - reminder all test cases must start with 'test' in the name of the method, or they will not run

@@ -1,7 +1,7 @@
 import {TestCase} from './test-case';
 import {ITestResult} from './test-result.types';
 import {assert, expect} from 'chai';
-import {ConcurrencyControl, Database, MutableDocument} from 'cblite';
+import {ConcurrencyControl, Database, MutableDocument} from '../../cblite';
 
 /**
  * CollectionTests - reminder all test cases must start with 'test' in the name of the method, or they will not run

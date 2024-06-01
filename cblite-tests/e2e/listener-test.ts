@@ -1,7 +1,7 @@
 import {TestCase} from './test-case';
 import {ITestResult} from './test-result.types';
-import {MutableDocument} from "cblite";
-import {assert, expect} from 'chai';
+import {MutableDocument} from '../../cblite/';
+import {expect} from 'chai';
 
 /**
  * ListenerTests - reminder all test cases must start with 'test' in the name of the method or they will not run

@@ -1,4 +1,4 @@
-import { CouchbaseLiteException } from 'cblite';
+import { CouchbaseLiteException } from '../../cblite';
 import { TestCase } from './test-case';
 import { ITestResult } from './test-result.types';
 
