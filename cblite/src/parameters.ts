@@ -64,13 +64,7 @@ export class Parameters {
         if (Object.keys(this._parameters).length > 0) {
             return this._parameters;
         } else {
-<<<<<<< HEAD
             return {};
-=======
-            {
-                return {}
-            };
->>>>>>> 5597561 (fixes for submodules)
         }
     }
 
