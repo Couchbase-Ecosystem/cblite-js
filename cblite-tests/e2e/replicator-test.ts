@@ -23,7 +23,13 @@ export class ReplicatorTests extends TestCase {
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
   async testReplicatorConfigDefaultValues(): Promise<ITestResult> {
-    const target = new URLEndpoint('ws://localhost:4984/db');
+
+    //iOS and Android have different ways to connect to the emulator/simulator
+    //ios
+    //const target = new URLEndpoint('ws://localhost:4984/projects');
+    //android 
+    const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
+
     const config = new ReplicatorConfiguration(target);
     config.addCollection(this.collection);
 
@@ -69,7 +75,13 @@ export class ReplicatorTests extends TestCase {
 
       //this is using the replication configuration from the Android Kotlin Learning path
       //**TODO update to use the new configuration and endpoint**
-      const target = new URLEndpoint('ws://localhost:4984/projects');
+      
+      //iOS and Android have different ways to connect to the emulator/simulator
+      //ios
+      //const target = new URLEndpoint('ws://localhost:4984/projects');
+      //android 
+      const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
+
       const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
       const config = new ReplicatorConfiguration(target);
       config.addCollection(this.defaultCollection);
@@ -137,7 +149,12 @@ export class ReplicatorTests extends TestCase {
 
       //this is using the replication configuration from the Android Kotlin Learning path
       //**TODO update to use the new configuration and endpoint**
-      const target = new URLEndpoint('ws://localhost:4984/projects');
+      //iOS and Android have different ways to connect to the emulator/simulator
+      //ios
+      //const target = new URLEndpoint('ws://localhost:4984/projects');
+      //android 
+      const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
+
       const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
       const config = new ReplicatorConfiguration(target);
       config.addCollection(this.defaultCollection);
