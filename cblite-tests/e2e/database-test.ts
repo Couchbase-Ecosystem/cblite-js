@@ -35,30 +35,26 @@ export class DatabaseTests extends TestCase {
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
   async testDeleteDocument(): Promise<ITestResult> {
+    try {
     const id = '123';
-    const doc = new MutableDocument();
-    doc.setId(id);
+    const doc = new MutableDocument(id);
     doc.setString('name', 'Scott');
     await this.database?.save(doc);
-    const deleteResult = await this.database
-      .deleteDocument(doc)
-      .then(() => {
+    await this.database.deleteDocument(doc);
         return {
           testName: 'testDeleteDocument',
           success: true,
           message: 'success',
           data: undefined,
         };
-      })
-      .catch((error) => {
+    } catch(error)  {
         return {
           testName: 'testDeleteDocument',
           success: false,
           message: JSON.stringify(error),
           data: undefined 
-        };
-      });
-    return deleteResult;
+      };
+    }
   }
 
   /**
