@@ -107,7 +107,7 @@ export class TestCase {
             await this.deleteDatabase(this.otherDatabase);
             this.otherDatabase = undefined;
         }
-    }
+    }   
 
     async deleteDatabase(db: Database): Promise<ITestResult> {
         try {
@@ -262,6 +262,11 @@ export class TestCase {
         mDoc.setLong(this.TEST_DOC_REV_SORT_KEY, top - id);
         return mDoc;
     }
+
+    jsonFromDate(date: Date): string {
+        const isoDate = date.toISOString();    
+        return isoDate;
+    }      
 
     async loadDocuments(numberOfDocs: number)
         : Promise<void> {
