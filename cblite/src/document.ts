@@ -40,16 +40,17 @@ export class Document {
     return this._get(key);
   }
 
-  getBlobContent(key: string, collection: Collection): Promise<ArrayBuffer> {
-    return collection
+  async getBlobContent(key: string, collection: Collection): Promise<ArrayBuffer> {
+    const data = await collection
       .getEngine()
-      .collection_GetDocumentBlobContent({
+      .collection_GetBlobContent({
         documentId: this.getId(),
         key: key,
         collectionName: collection.name,
         scopeName: collection.scope.name,
         name: collection.scope.database.getName(),
       });
+      return data.data;
   }
 
   getBoolean(key: string) {
