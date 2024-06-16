@@ -536,8 +536,8 @@ export interface ICoreEngine {
      */
     collection_GetDocument(args: CollectionGetDocumentArgs): Promise<DocumentResult>;
 
-    collection_GetDocumentBlobContent(args: CollectionDocumentGetBlobContentArgs )
-        : Promise<ArrayBuffer>;
+    collection_GetBlobContent(args: CollectionDocumentGetBlobContentArgs )
+        : Promise<{data: ArrayBuffer}>;
 
     /**
      * Represents getting an Index
@@ -649,7 +649,7 @@ export interface ICoreEngine {
      * @deprecated This will be removed in future versions. Use Collection_GetDocumentBlobContent instead.
      */
     document_GetBlobContent(args: DocumentGetBlobContentArgs )
-        : Promise<ArrayBuffer>;
+        : Promise<{data: ArrayBuffer}>;
 
     /**
      * Represents getting a default path from the operating system to save a database
