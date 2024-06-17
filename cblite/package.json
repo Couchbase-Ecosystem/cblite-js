@@ -1,6 +1,6 @@
 {
   "name": "cblite",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "The core Typescript API definition module for CBLite for mobile platforms",
   "main": "index.ts",
   "scripts": {
