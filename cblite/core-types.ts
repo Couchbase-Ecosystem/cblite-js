@@ -136,6 +136,11 @@ export interface CollectionDocumentGetBlobContentArgs extends CollectionArgs {
     key: string;
 }
 
+export interface CollectionDocumentExpirationArgs extends CollectionArgs {
+    docId: string;
+    expiration: Date;
+}
+
 export interface CollectionDocumentSaveResult {
     _id: string;
 }
@@ -346,6 +351,10 @@ export interface DocumentResult {
     document: Document;
 }
 
+export interface DocumentExpirationResult {
+    date: Date;
+}
+
 /**
  * Represents the interface for a listener callback
  *
@@ -536,6 +545,15 @@ export interface ICoreEngine {
      */
     collection_GetDocument(args: CollectionGetDocumentArgs): Promise<DocumentResult>;
 
+    /**
+     * Get an existing document exipiration date by document ID. 
+     *
+     * Throws an error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+     collection_GetDocumentExpiration(args: CollectionGetDocumentArgs): Promise<DocumentExpirationResult>;
+
     collection_GetBlobContent(args: CollectionDocumentGetBlobContentArgs )
         : Promise<{data: ArrayBuffer}>;
 
@@ -580,6 +598,17 @@ export interface ICoreEngine {
      */
     collection_Save(args: CollectionSaveArgs )
         : Promise<CollectionDocumentSaveResult>;
+
+
+    /**
+     * Set an existing document exipiration date by document ID. 
+     *
+     * Throws an error if the collection is deleted or the database is closed.
+     *
+     * @function
+     */
+     collection_SetDocumentExpiration(args: CollectionDocumentExpirationArgs)
+        : Promise<void>;
 
     // ****************************
     // Database
