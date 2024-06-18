@@ -67,6 +67,21 @@ export class Database {
     });
   }
 
+   /**
+   * Changes the database’s encryption key, or removes 
+   * encryption if the new key is nil. 
+   *
+   * @function
+   */
+  async changeEncryptionKey(newKey: string | null)
+    :Promise<void> {
+     await this._engine.database_ChangeEncryptionKey({
+      name: this._databaseName,
+      newKey: newKey
+    });
+     this._databaseConfig.setEncryptionKey(newKey);
+  }
+
   /**
    * Close the database.  This will release all resources associated with the database.
    *
