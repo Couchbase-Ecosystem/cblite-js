@@ -1,6 +1,6 @@
 {
   "name": "cblite-tests",
-  "version": "0.1.6",
+  "version": "0.2.2",
   "description": "A testing library for cblite",
   "main": "index.ts",
   "scripts": {
