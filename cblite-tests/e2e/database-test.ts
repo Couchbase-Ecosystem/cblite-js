@@ -1,7 +1,15 @@
 import {TestCase} from './test-case';
 import {ITestResult} from './test-result.types';
 import {assert, expect} from 'chai';
-import {Blob, ConcurrencyControl, DatabaseConfiguration, FileSystem, MaintenanceType, MutableDocument} from '../../cblite';
+import {
+  Blob,
+  ConcurrencyControl,
+  Database,
+  DatabaseConfiguration,
+  FileSystem,
+  MaintenanceType,
+  MutableDocument, uuid
+} from '../../cblite';
 
 /**
  * DatabaseTests - reminder all test cases must start with 'test' in the name of the method, or they will not run
@@ -311,6 +319,66 @@ export class DatabaseTests extends TestCase {
     };
   }
 
+  async testDatabaseEncryptionChangeKey(): Promise<ITestResult> {
+    try {
+      //setup database
+      const dbName = `db${uuid().toString().replace(/-/g, '')}`;
+      const config = new DatabaseConfiguration();
+      const configNoEncryption = new DatabaseConfiguration();
+      const filePathResult = await this.getPlatformPath();
+      if (filePathResult.success) {
+        config.setDirectory(filePathResult.data);
+        configNoEncryption.setDirectory(filePathResult.data);
+      }
+      //set encryption key
+      config.setEncryptionKey("P@33word12");
+      const database = new Database(dbName, config);
+      await database.open();
+      //open collection and use this to create document so we can test changing the key,
+      //closing the database and opening to get the document
+      const collection = await database.defaultCollection();
+      const doc = new MutableDocument("doc-1");
+      doc.setString("name", "test");
+      await collection.save(doc);
+
+      //change the key and close and open the database again
+      await database.changeEncryptionKey("Password12");
+      await database.close();
+
+      config.setEncryptionKey("Password12");
+      const database2 = new Database(dbName, config);
+      await database2.open();
+      const collection2 = await database2.defaultCollection();
+      const doc2 = await collection2.document("doc-1");
+
+      expect(doc2.getString("name")).to.equal("test");
+
+      await database2.changeEncryptionKey(null);
+      await database2.close();
+
+      //set setting the encryption key to null, which should make it blank
+      const database3 = new Database(dbName, configNoEncryption);
+      await database3.open();
+      const collection3 = await database3.defaultCollection();
+      const doc3 = await collection3.document("doc-1");
+
+      expect(doc3.getString("name")).to.equal("test");
+    } catch(error){
+      return {
+        testName: 'testDatabaseEncryptionChangeKey',
+        success: false,
+        message: JSON.stringify(error),
+        data: undefined,
+      };
+    }
+    return {
+      testName: 'testDatabaseEncryptionChangeKey',
+      success: true,
+      message: 'success',
+      data: undefined,
+    };
+  }
+
   async testCopyingDatabaseConfiguration(): Promise<ITestResult> {
     try {
       const fs = new FileSystem();
@@ -460,7 +528,6 @@ export class DatabaseTests extends TestCase {
     }
   }
 
-
    /**
    * This is a helper method used to test ConcurrencyControl
    *
@@ -514,5 +581,4 @@ export class DatabaseTests extends TestCase {
       };
     }
   }
-
 }

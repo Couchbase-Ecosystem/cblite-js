@@ -254,6 +254,18 @@ export interface DatabaseExistsArgs extends DatabaseArgs {
 }
 
 /**
+ * Represents arguments for changing the encryption key of a Database 
+ *
+ *
+ * @interface
+ * @property {string} name - The unique name of the database
+ * @property {string} newKey - the new encryption key - if null will remove the key 
+ */
+export interface DatabaseEncryptionKeyArgs extends DatabaseArgs {
+    newKey: string | null;
+}
+
+/**
  * @deprecated This interface will be removed in future versions. Use CollectionDeleteDocumentArgs instead.
  */
 export interface DatabaseGetDocumentArgs extends DatabaseArgs {
@@ -613,6 +625,8 @@ export interface ICoreEngine {
     // ****************************
     // Database
     // ****************************
+
+    database_ChangeEncryptionKey(args: DatabaseEncryptionKeyArgs): Promise<void>;
 
     database_Close(args: DatabaseArgs): Promise<void>;
 
