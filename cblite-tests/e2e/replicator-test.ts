@@ -1,7 +1,7 @@
 import { TestCase } from './test-case';
 import { ITestResult } from './test-result.types';
 import {
-  BasicAuthenticator,
+  BasicAuthenticator, MutableDocument,
   Replicator,
   ReplicatorActivityLevel,
   ReplicatorConfiguration,
@@ -70,15 +70,63 @@ export class ReplicatorTests extends TestCase {
    *
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
-  async testReplicationStatusChangeListenerEvent(): Promise<ITestResult> {
+  async testIsDocumentPending(): Promise<ITestResult> {
     try {
-
-      //this is using the replication configuration from the Android Kotlin Learning path
-      //**TODO update to use the new configuration and endpoint**
-      
       //iOS and Android have different ways to connect to the emulator/simulator
+
       //ios
       //const target = new URLEndpoint('ws://localhost:4984/projects');
+
+      //android
+      const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
+
+      const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
+      const config = new ReplicatorConfiguration(target);
+      config.addCollection(this.defaultCollection);
+      config.setAuthenticator(auth);
+
+      //setup document
+      const docId = "doc1";
+      const doc = new MutableDocument(docId);
+      doc.setString("foo", "bar");
+      await this.defaultCollection.save(doc);
+
+      //setup replicator
+      const replicator = await Replicator.create(config);
+
+      const isPending = await replicator.isDocumentPending(docId, this.defaultCollection);
+
+      const count = await this.defaultCollection.count();
+      expect(count.count).to.be.greaterThan(0);
+      expect(isPending).to.be.true;
+
+      return {
+        testName: 'testIsDocumentPending',
+        success: true,
+        message: `success`,
+        data: undefined,
+      };
+    } catch (error) {
+      return {
+        testName: 'testIsDocumentPending',
+        success: false,
+        message: `Error:${error}`,
+        data: undefined,
+      };
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
+   */
+  async testReplicationStatusChangeListenerEvent(): Promise<ITestResult> {
+    try {
+      //iOS and Android have different ways to connect to the emulator/simulator
+
+      //ios
+      //const target = new URLEndpoint('ws://localhost:4984/projects');
+
       //android 
       const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
 
@@ -146,12 +194,11 @@ export class ReplicatorTests extends TestCase {
    */
   async testDocumentChangeListenerEvent(): Promise<ITestResult> {
     try {
-
-      //this is using the replication configuration from the Android Kotlin Learning path
-      //**TODO update to use the new configuration and endpoint**
       //iOS and Android have different ways to connect to the emulator/simulator
+
       //ios
       //const target = new URLEndpoint('ws://localhost:4984/projects');
+
       //android 
       const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
 
@@ -217,7 +264,6 @@ export class ReplicatorTests extends TestCase {
     }
   }
 
-
   /**
    *
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
@@ -274,84 +320,6 @@ export class ReplicatorTests extends TestCase {
    *
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
-  async testDocumentReplicationEventWithPushConflict(): Promise<ITestResult> {
-    return {
-      testName: 'testDocumentReplicationEventWithPushConflict',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testDocumentReplicationEventWithPullConflict(): Promise<ITestResult> {
-    return {
-      testName: 'testDocumentReplicationEventWithPullConflict',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testDocumentReplicationEventWithDeletion(): Promise<ITestResult> {
-    return {
-      testName: 'testDocumentReplicationEventWithDeletion',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testSingleShotPushFilter(): Promise<ITestResult> {
-    return {
-      testName: 'testSingleShotPushFilter',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testContinuousPushFilter(): Promise<ITestResult> {
-    return {
-      testName: 'testContinuousPushFilter',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testPullFilter(): Promise<ITestResult> {
-    return {
-      testName: 'testPullFilter',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
   async testPushAndForget(): Promise<ITestResult> {
     return {
       testName: 'testPushAndForget',
@@ -360,60 +328,6 @@ export class ReplicatorTests extends TestCase {
       data: undefined,
     };
   }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testPullRemovedDocWithFilterSingleShot(): Promise<ITestResult> {
-    return {
-      testName: 'testPullRemovedDocWithFilterSingleShot',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testPullRemovedDocWithFilterContinuous(): Promise<ITestResult> {
-    return {
-      testName: 'testPullRemovedDocWithFilterContinuous',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testStopAndRestartPushReplicationWithFilter(): Promise<ITestResult> {
-    return {
-      testName: 'testStopAndRestartPushReplicationWithFilter',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-  /**
-   *
-   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
-   */
-  async testStopAndRestartPullReplicationWithFilter(): Promise<ITestResult> {
-    return {
-      testName: 'testStopAndRestartPullReplicationWithFilter',
-      success: false,
-      message: 'Not implemented',
-      data: undefined,
-    };
-  }
-
-
 
   /**
    *
