@@ -454,6 +454,10 @@ export interface ReplicationChangeListenerArgs extends ReplicatorArgs {
     changeListenerToken: string;
 }
 
+export interface ReplicatorDocumentPendingArgs extends ReplicatorArgs, CollectionArgs {
+    documentId: string;
+}
+
 export interface ReplicatorStatusChange {
     status: ReplicatorStatus;
 }
@@ -741,6 +745,8 @@ export interface ICoreEngine {
     replicator_GetStatus(args: ReplicatorArgs): Promise<ReplicatorStatus>;
 
     replicator_GetPendingDocumentIds(args: ReplicatorCollectionArgs): Promise<{ pendingDocumentIds: string[] }>;
+
+    replicator_IsDocumentPending(args: ReplicatorDocumentPendingArgs): Promise<{ isPending: boolean }>;
 
     replicator_Start(args: ReplicatorArgs): Promise<void>;
 

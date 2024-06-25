@@ -1,5 +1,5 @@
 import {ReplicatorConfiguration} from './replicator-configuration';
-import {uuid, uuid as v4} from './util/uuid';
+import {uuid} from './util/uuid';
 import {ICoreEngine, ReplicatorChangeListener, ReplicatorDocumentChangeListener} from "../core-types";
 import {EngineLocator} from "./engine-locator";
 import {ReplicatorStatus} from "./replicator-status";
@@ -18,7 +18,8 @@ export class Replicator {
     private _statusChangeListener: ReplicatorChangeListener;
     private _didStartStatusChangeListener: boolean = false;
 
-    private _documentChangeListener: Map<String, ReplicatorDocumentChangeListener>;
+    private _documentChangeListener: Map<string, ReplicatorDocumentChangeListener>;
+
     /**
      * Initializes a replicator with the given configuration
      *
@@ -27,7 +28,7 @@ export class Replicator {
     private constructor(replicatorId: string, config: ReplicatorConfiguration) {
         this._replicatorId = replicatorId;
         this._config = config;
-        this._documentChangeListener = new Map<String, ReplicatorDocumentChangeListener>();
+        this._documentChangeListener = new Map<string, ReplicatorDocumentChangeListener>();
     }
 
     /**
@@ -59,7 +60,10 @@ export class Replicator {
     async addDocumentChangeListener(listener: ReplicatorDocumentChangeListener): Promise<string> {
         const token = uuid();
         this._documentChangeListener.set(token, listener);
-        await this._engine.replicator_AddDocumentChangeListener({ replicatorId: this._replicatorId, changeListenerToken: token}, (data, err) => {
+        await this._engine.replicator_AddDocumentChangeListener({
+            replicatorId: this._replicatorId,
+            changeListenerToken: token
+        }, (data, err) => {
             if (err) {
                 throw err;
             }
@@ -85,42 +89,14 @@ export class Replicator {
         return replicator;
     }
 
-    private notifyDocumentChange(data: DocumentReplicationRepresentation, token: String) {
-        const documents = data.documents.map((doc) => {
-            return {
-                scopeName: doc.scopeName,
-                collectionName: doc.collectionName,
-                id: doc.id,
-                flags: doc.flags,
-                error: doc.error
-            };
-        });
-        const documentReplication = {isPush: data.isPush, documents: documents};
-        this._documentChangeListener.get(token)(documentReplication);
-    }
-
-    private notifyStatusChange(data: any) {
-        let status: ReplicatorStatus | undefined = undefined;
-        const activityLevel= Number(data.activityLevel) as ReplicatorActivityLevel;
-        const replicatorProgress = new ReplicatorProgress(data.progress.completed, data.progress.total);
-        if (data.error && typeof data.error.message === "string") {
-            status = new ReplicatorStatus(activityLevel, replicatorProgress, data.error.message);
-
-        } else {
-            status = new ReplicatorStatus(activityLevel, replicatorProgress, undefined);
-        }
-        const statusChange = { status: status};
-        this._statusChangeListener(statusChange);
-    }
 
     /**
      * Removes the replicator from the native engine and stops the replicator from running.
-     * This will remove all listeners from the replicator.  As part of this, if you were to call start
-     * after this method, a new replicator would be created Natively and a new replicator id would be
-     * created.
+     * This will remove all listeners from the replicator.  As part of this, if you were to call
+     * start after this method, a new replicator would be created Natively and a new replicator
+     * id would be created.
      *
      * @function
-     *
      */
     async cleanup(): Promise<void> {
         await this._engine.replicator_Cleanup({replicatorId: this._replicatorId});
@@ -128,11 +104,11 @@ export class Replicator {
     }
 
     /**
-     * returns the replicator id used to manage the replicator between the engine and the replicator
-     * native implementation.  This value should get set when the replicator is created in the native
-     * t engine via the start method.
-     * @function
+     * returns the replicator id used to manage the replicator between the engine and the
+     * replicator native implementation.  This value should get set when the replicator is
+     * created in the native engine via the start method.
      *
+     * @function
      */
     getId(): string | undefined {
         return this._replicatorId;
@@ -160,29 +136,77 @@ export class Replicator {
      *
      * @function
      */
-    async getPendingDocumentIds(collection: Collection): Promise<{pendingDocumentIds: string[] }>{
+    async getPendingDocumentIds(collection: Collection): Promise<{ pendingDocumentIds: string[] }> {
         const collections = this._config.getCollections();
         if (!collections.includes(collection)) {
             throw new Error("Collection not part of the replication");
         }
-        return await this._engine.replicator_GetPendingDocumentIds({replicatorId: this._replicatorId, collectionName: collection.name, scopeName: collection.scope.name, name: collection.database.getName() });
+        return await this._engine.replicator_GetPendingDocumentIds({
+            replicatorId: this._replicatorId,
+            collectionName: collection.name,
+            scopeName: collection.scope.name,
+            name: collection.database.getName()
+        });
+    }
+
+    /**
+     * Check whether the document in the given collection is pending to push or not. If the given collection is not part of the replicator, an Exception will be thrown.
+     *
+     * @function
+     */
+    async isDocumentPending(documentId: string, collection: Collection)
+        : Promise<{ isPending: boolean }> {
+        const collections = this._config.getCollections();
+        if (!collections.includes(collection)) {
+            throw new Error("Collection not part of the replication");
+        }
+        return await this._engine.replicator_IsDocumentPending({
+            replicatorId: this._replicatorId,
+            documentId: documentId,
+            collectionName: collection.name,
+            scopeName: collection.scope.name,
+            name: collection.database.getName()
+        });
+    }
+
+    private notifyDocumentChange(data: DocumentReplicationRepresentation, token: string) {
+        const documents = data.documents.map((doc) => {
+            return {
+                scopeName: doc.scopeName,
+                collectionName: doc.collectionName,
+                id: doc.id,
+                flags: doc.flags,
+                error: doc.error
+            };
+        });
+        const documentReplication = {isPush: data.isPush, documents: documents};
+        this._documentChangeListener.get(token)(documentReplication);
+    }
+
+    private notifyStatusChange(data: any) {
+        let status: ReplicatorStatus | undefined = undefined;
+        const activityLevel = Number(data.activityLevel) as ReplicatorActivityLevel;
+        const replicatorProgress = new ReplicatorProgress(data.progress.completed, data.progress.total);
+        if (data.error && typeof data.error.message === "string") {
+            status = new ReplicatorStatus(activityLevel, replicatorProgress, data.error.message);
+
+        } else {
+            status = new ReplicatorStatus(activityLevel, replicatorProgress, undefined);
+        }
+        const statusChange = {status: status};
+        this._statusChangeListener(statusChange);
     }
 
     /**
      * Removes a change listener with the given listener token.
      *
      * @function
-     *
      */
     async removeChangeListener(token: string): Promise<void> {
-        try {
-            await this._engine.replicator_RemoveChangeListener({
-                replicatorId: this._replicatorId,
-                changeListenerToken: token
-            });
-        } catch (error) {
-            throw error;
-        }
+        await this._engine.replicator_RemoveChangeListener({
+            replicatorId: this._replicatorId,
+            changeListenerToken: token
+        });
     }
 
     /**
