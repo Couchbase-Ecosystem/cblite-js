@@ -94,11 +94,11 @@ export class ReplicatorTests extends TestCase {
       //setup replicator
       const replicator = await Replicator.create(config);
 
-      const isPending = await replicator.isDocumentPending(docId, this.defaultCollection);
+      const isDocumentPendingResults = await replicator.isDocumentPending(docId, this.defaultCollection);
 
       const count = await this.defaultCollection.count();
       expect(count.count).to.be.greaterThan(0);
-      expect(isPending).to.be.true;
+      expect(isDocumentPendingResults.isPending).to.be.true;
 
       return {
         testName: 'testIsDocumentPending',
@@ -109,6 +109,63 @@ export class ReplicatorTests extends TestCase {
     } catch (error) {
       return {
         testName: 'testIsDocumentPending',
+        success: false,
+        message: `Error:${error}`,
+        data: undefined,
+      };
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
+   */
+  async testDocumentsPending(): Promise<ITestResult> {
+    try {
+      //iOS and Android have different ways to connect to the emulator/simulator
+
+      //ios
+      //const target = new URLEndpoint('ws://localhost:4984/projects');
+
+      //android
+      const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
+
+      const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
+      const config = new ReplicatorConfiguration(target);
+      config.addCollection(this.defaultCollection);
+      config.setAuthenticator(auth);
+
+      //setup document
+      const docId = "doc1";
+      const docId2 = "doc2";
+      const doc = new MutableDocument(docId);
+      const doc2 = new MutableDocument(docId2);
+      doc.setString("foo", "bar");
+      doc2.setString("foo", "bar");
+      await this.defaultCollection.save(doc);
+      await this.defaultCollection.save(doc2);
+
+      //setup replicator
+      const replicator = await Replicator.create(config);
+
+      const pendingDocumentsResults = await replicator.getPendingDocumentIds(this.defaultCollection);
+
+      const count = await this.defaultCollection.count();
+      const pendingDocumentsCount = pendingDocumentsResults.pendingDocumentIds.length;
+      expect(count.count).to.be.greaterThan(0);
+      expect(pendingDocumentsCount).to.equal(2);
+      expect(pendingDocumentsResults.pendingDocumentIds).to.include(docId);
+      expect(pendingDocumentsResults.pendingDocumentIds).to.include(docId2);
+
+      return {
+        testName: 'testDocumentsPending',
+        success: true,
+        message: `success`,
+        data: undefined,
+      };
+    } catch (error) {
+      return {
+        testName: 'testDocumentsPending',
         success: false,
         message: `Error:${error}`,
         data: undefined,
