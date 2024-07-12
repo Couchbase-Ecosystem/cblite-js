@@ -1,7 +1,11 @@
-import { Expression } from "./expression";
+import { Expression } from './expression';
 
 export class MetaExpression extends Expression {
-  constructor(private _keyPath: string, private _columnName: string, private _from: string) {
+  constructor(
+    private _keyPath: string,
+    private _columnName: string,
+    private _from: string
+  ) {
     super();
   }
 

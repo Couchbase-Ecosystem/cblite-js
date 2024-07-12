@@ -19,7 +19,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testGetExpirationPreSave',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -47,7 +47,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testSetAndGetExpiration',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -60,7 +60,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testSetExpiryToNonExistingDocument',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -73,7 +73,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testDocumentPurgingAfterSettingExpiry',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -86,7 +86,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testDocumentPurgedAfterExpiration',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -99,7 +99,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testDocumentNotShownUpInQueryAfterExpiration',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -112,7 +112,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testDocumentNotPurgedBeforeExpiration',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -125,7 +125,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testSetExpirationThenCloseDatabase',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -138,7 +138,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testExpiredDocumentPurgedAfterReopenDatabase',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -151,7 +151,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testOverrideExpirationWithFartherDate',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -164,7 +164,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testOverrideExpirationWithCloserDate',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -177,7 +177,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testRemoveExpirationDate',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -190,7 +190,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testSetExpirationThenDeletionAfterwards',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -203,7 +203,7 @@ export class DocumentExpirationTests extends TestCase {
       testName: 'testPurgeImmedietly',
       success: false,
       message: 'Not implemented',
-      data: undefined
+      data: undefined,
     };
   }
 }

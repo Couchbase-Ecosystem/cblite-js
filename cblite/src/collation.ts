@@ -13,20 +13,27 @@ export class Collation {
   }
 
   toString() {
-    return "Collation{" +
-            "unicode=" + this._unicode +
-            ", ignoreCase=" + this._ignoreCase +
-            ", ignoreAccents=" + this._ignoreAccents +
-            ", locale='" + this._locale + '\'' +
-            '}';
+    return (
+      'Collation{' +
+      'unicode=' +
+      this._unicode +
+      ', ignoreCase=' +
+      this._ignoreCase +
+      ', ignoreAccents=' +
+      this._ignoreAccents +
+      ", locale='" +
+      this._locale +
+      "'" +
+      '}'
+    );
   }
 
   asJSON() {
     const json: any = {};
-    json["UNICODE"] = this._unicode;
-    json["LOCALE"] = this._locale == null ? null : this._locale;
-    json["CASE"] = !this._ignoreCase;
-    json["DIAC"] = !this._ignoreAccents;
+    json.UNICODE = this._unicode;
+    json.LOCALE = this._locale == null ? null : this._locale;
+    json.CASE = !this._ignoreCase;
+    json.DIAC = !this._ignoreAccents;
     return json;
   }
 }

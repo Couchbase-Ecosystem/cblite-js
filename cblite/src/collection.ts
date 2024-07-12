@@ -1,18 +1,18 @@
-import { Scope } from "./scope";
-import { EngineLocator } from "./engine-locator";
-import { AbstractIndex } from "./abstract-index";
-import { Database } from "./database";
-import { Document } from "./document";
-import { ConcurrencyControl } from "./concurrency-control";
-import { MutableDocument } from "./mutable-document";
+import { Scope } from './scope';
+import { EngineLocator } from './engine-locator';
+import { AbstractIndex } from './abstract-index';
+import { Database } from './database';
+import { Document } from './document';
+import { ConcurrencyControl } from './concurrency-control';
+import { MutableDocument } from './mutable-document';
 
 import {
   DocumentChangeListener,
   CollectionChangeListener,
   ICoreEngine,
-} from "../core-types";
+} from '../core-types';
 
-import { uuid } from "./util/uuid";
+import { uuid } from './util/uuid';
 
 export class Collection {
   //used for engine calls
@@ -31,8 +31,8 @@ export class Collection {
     scope: Scope | undefined,
     database: Database
   ) {
-    this.name = name ?? "";
-    this.scope = scope ?? new Scope("", database);
+    this.name = name ?? '';
+    this.scope = scope ?? new Scope('', database);
     this.database = database;
     this._documentChangeListener = new Map<string, DocumentChangeListener>();
     this._didStartDocumentListener = new Map<string, boolean>();
@@ -92,7 +92,7 @@ export class Collection {
       this._didStartListener = true;
       return token;
     } else {
-      throw new Error("Listener already started");
+      throw new Error('Listener already started');
     }
   }
 
@@ -216,10 +216,14 @@ export class Collection {
       scopeName: this.scope.name,
       collectionName: this.name,
     });
-    if (docJson && docJson["_id"]) {
-      const data = docJson["_data"];
-      const sequence = docJson["_sequence"];
-      const retId = docJson["_id"];
+    // @ts-ignore
+    if (docJson && docJson._id) {
+      // @ts-ignore
+      const data = docJson._data;
+      // @ts-ignore
+      const sequence = docJson._sequence;
+      // @ts-ignore
+      const retId = docJson._id;
       return Promise.resolve(new Document(retId, sequence, data));
     } else {
       return Promise.resolve(undefined);
@@ -267,7 +271,7 @@ export class Collection {
       scopeName: this.scope.name,
       collectionName: this.name,
     });
-    return indexes["indexes"];
+    return indexes.indexes;
   }
 
   /**
@@ -390,14 +394,15 @@ export class Collection {
 
   async setDocumentExpiration(
     id: string,
-    expiration: Date | null) : Promise<void>{
-        await this._engine.collection_SetDocumentExpiration({
-            docId: id,
-            name: this.database.getName(),
-            scopeName: this.scope.name,
-            collectionName: this.name,
-            expiration: expiration
-        });
+    expiration: Date | null
+  ): Promise<void> {
+    await this._engine.collection_SetDocumentExpiration({
+      docId: id,
+      name: this.database.getName(),
+      scopeName: this.scope.name,
+      collectionName: this.name,
+      expiration: expiration,
+    });
   }
 
   toJson(): any {

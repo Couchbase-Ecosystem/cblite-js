@@ -66,6 +66,4 @@ export class CustomLoggingTests extends TestCase {
       data: undefined,
     };
   }
-
-
 }

@@ -1,16 +1,20 @@
-import { Dictionary } from "./definitions";
-import { ReplicatorConfiguration } from "./replicator-configuration";
+import { Dictionary } from './definitions';
+import { ReplicatorConfiguration } from './replicator-configuration';
 import { Authenticator } from './authenticator';
 
 export class SessionAuthenticator extends Authenticator {
-  private static DEFAULT_SYNC_GATEWAY_SESSION_ID_NAME = "SyncGatewaySession";
+  private static DEFAULT_SYNC_GATEWAY_SESSION_ID_NAME = 'SyncGatewaySession';
 
-  constructor(private sessionID: string, private cookieName: string = SessionAuthenticator.DEFAULT_SYNC_GATEWAY_SESSION_ID_NAME) {
+  constructor(
+    private sessionID: string,
+    private cookieName: string = SessionAuthenticator.DEFAULT_SYNC_GATEWAY_SESSION_ID_NAME
+  ) {
     super();
   }
 
   authenticate(options: Dictionary) {
-    const current = options[ReplicatorConfiguration.CBLReplicatorOptionCookies] || '';
+    const current =
+      options[ReplicatorConfiguration.CBLReplicatorOptionCookies] || '';
     let cookieStr = current;
     if (current.length) {
       cookieStr += '; ';
@@ -34,7 +38,7 @@ export class SessionAuthenticator extends Authenticator {
   toJson() {
     return {
       cookieName: this.cookieName,
-      sessionID: this.sessionID
-    }
+      sessionID: this.sessionID,
+    };
   }
 }

@@ -1,14 +1,15 @@
 import { TestCase } from './test-case';
 import { ITestResult } from './test-result.types';
 import {
-  BasicAuthenticator, MutableDocument,
+  BasicAuthenticator,
+  MutableDocument,
   Replicator,
   ReplicatorActivityLevel,
   ReplicatorConfiguration,
   ReplicatorType,
-  URLEndpoint
+  URLEndpoint,
 } from '../../cblite';
-import {expect} from "chai";
+import { expect } from 'chai';
 
 /**
  * ReplicatorTests - reminder all test cases must start with 'test' in the name of the method or they will not run
@@ -23,11 +24,10 @@ export class ReplicatorTests extends TestCase {
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
   async testReplicatorConfigDefaultValues(): Promise<ITestResult> {
-
     //iOS and Android have different ways to connect to the emulator/simulator
     //ios
     //const target = new URLEndpoint('ws://localhost:4984/projects');
-    //android 
+    //android
     const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
 
     const config = new ReplicatorConfiguration(target);
@@ -37,16 +37,34 @@ export class ReplicatorTests extends TestCase {
       //check to make sure that the default values are being set in the configuration
       expect(config.getCollections().length).to.be.equal(1);
       expect(config.getCollections()[0]).to.be.equal(this.collection);
-      expect(config.getReplicatorType()).to.be.equal(ReplicatorType.PUSH_AND_PULL);
+      expect(config.getReplicatorType()).to.be.equal(
+        ReplicatorType.PUSH_AND_PULL
+      );
 
-      expect(config.getAcceptOnlySelfSignedCerts()).to.be.equal(ReplicatorConfiguration.defaultSelfSignedCertificateOnly);
-      expect(config.getAllowReplicatingInBackground()).to.be.equal(ReplicatorConfiguration.defaultAllowReplicatingInBackground);
-      expect(config.getAcceptParentDomainCookies()).to.be.equal(ReplicatorConfiguration.defaultAcceptParentDomainCookies);
-      expect(config.getAutoPurgeEnabled()).to.be.equal(ReplicatorConfiguration.defaultEnableAutoPurge);
-      expect(config.getContinuous()).to.be.equal(ReplicatorConfiguration.defaultContinuous);
-      expect(config.getHeartbeat()).to.be.equal(ReplicatorConfiguration.defaultHeartbeat);
-      expect(config.getMaxAttempts()).to.be.equal(ReplicatorConfiguration.defaultMaxAttemptsSingleShot);
-      expect(config.getMaxAttemptWaitTime()).to.be.equal(ReplicatorConfiguration.defaultMaxAttemptsWaitTime);
+      expect(config.getAcceptOnlySelfSignedCerts()).to.be.equal(
+        ReplicatorConfiguration.defaultSelfSignedCertificateOnly
+      );
+      expect(config.getAllowReplicatingInBackground()).to.be.equal(
+        ReplicatorConfiguration.defaultAllowReplicatingInBackground
+      );
+      expect(config.getAcceptParentDomainCookies()).to.be.equal(
+        ReplicatorConfiguration.defaultAcceptParentDomainCookies
+      );
+      expect(config.getAutoPurgeEnabled()).to.be.equal(
+        ReplicatorConfiguration.defaultEnableAutoPurge
+      );
+      expect(config.getContinuous()).to.be.equal(
+        ReplicatorConfiguration.defaultContinuous
+      );
+      expect(config.getHeartbeat()).to.be.equal(
+        ReplicatorConfiguration.defaultHeartbeat
+      );
+      expect(config.getMaxAttempts()).to.be.equal(
+        ReplicatorConfiguration.defaultMaxAttemptsSingleShot
+      );
+      expect(config.getMaxAttemptWaitTime()).to.be.equal(
+        ReplicatorConfiguration.defaultMaxAttemptsWaitTime
+      );
 
       expect(config.getHeaders()).to.be.equal(undefined);
       expect(config.getAuthenticator()).to.be.equal(undefined);
@@ -57,12 +75,12 @@ export class ReplicatorTests extends TestCase {
         data: undefined,
       };
     } catch (error) {
-        return {
-          testName: 'testReplicatorConfigDefaultValues',
-          success: false,
-          message: `${error}`,
-          data: undefined,
-        };
+      return {
+        testName: 'testReplicatorConfigDefaultValues',
+        success: false,
+        message: `${error}`,
+        data: undefined,
+      };
     }
   }
 
@@ -86,15 +104,18 @@ export class ReplicatorTests extends TestCase {
       config.setAuthenticator(auth);
 
       //setup document
-      const docId = "doc1";
+      const docId = 'doc1';
       const doc = new MutableDocument(docId);
-      doc.setString("foo", "bar");
+      doc.setString('foo', 'bar');
       await this.defaultCollection.save(doc);
 
       //setup replicator
       const replicator = await Replicator.create(config);
 
-      const isDocumentPendingResults = await replicator.isDocumentPending(docId, this.defaultCollection);
+      const isDocumentPendingResults = await replicator.isDocumentPending(
+        docId,
+        this.defaultCollection
+      );
 
       const count = await this.defaultCollection.count();
       expect(count.count).to.be.greaterThan(0);
@@ -136,22 +157,25 @@ export class ReplicatorTests extends TestCase {
       config.setAuthenticator(auth);
 
       //setup document
-      const docId = "doc1";
-      const docId2 = "doc2";
+      const docId = 'doc1';
+      const docId2 = 'doc2';
       const doc = new MutableDocument(docId);
       const doc2 = new MutableDocument(docId2);
-      doc.setString("foo", "bar");
-      doc2.setString("foo", "bar");
+      doc.setString('foo', 'bar');
+      doc2.setString('foo', 'bar');
       await this.defaultCollection.save(doc);
       await this.defaultCollection.save(doc2);
 
       //setup replicator
       const replicator = await Replicator.create(config);
 
-      const pendingDocumentsResults = await replicator.getPendingDocumentIds(this.defaultCollection);
+      const pendingDocumentsResults = await replicator.getPendingDocumentIds(
+        this.defaultCollection
+      );
 
       const count = await this.defaultCollection.count();
-      const pendingDocumentsCount = pendingDocumentsResults.pendingDocumentIds.length;
+      const pendingDocumentsCount =
+        pendingDocumentsResults.pendingDocumentIds.length;
       expect(count.count).to.be.greaterThan(0);
       expect(pendingDocumentsCount).to.equal(2);
       expect(pendingDocumentsResults.pendingDocumentIds).to.include(docId);
@@ -184,7 +208,7 @@ export class ReplicatorTests extends TestCase {
       //ios
       //const target = new URLEndpoint('ws://localhost:4984/projects');
 
-      //android 
+      //android
       const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
 
       const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
@@ -197,14 +221,13 @@ export class ReplicatorTests extends TestCase {
 
       const replicator = await Replicator.create(config);
       const token = await replicator.addChangeListener((change) => {
-
         //check to see if there was an error
         const error = change.status.getError();
         if (error !== undefined) {
           isError = true;
         }
         //get the status of the replicator using ReplicatorActivityLevel enum
-        if (change.status.getActivityLevel() ===  ReplicatorActivityLevel.IDLE) {
+        if (change.status.getActivityLevel() === ReplicatorActivityLevel.IDLE) {
           //do something because the replicator is now IDLE
         }
         didGetChangeStatus = true;
@@ -256,7 +279,7 @@ export class ReplicatorTests extends TestCase {
       //ios
       //const target = new URLEndpoint('ws://localhost:4984/projects');
 
-      //android 
+      //android
       const target = new URLEndpoint('ws://10.0.2.2:4984/projects');
 
       const auth = new BasicAuthenticator('demo@example.com', 'P@ssw0rd12');
@@ -275,13 +298,13 @@ export class ReplicatorTests extends TestCase {
         const isPush = change.isPush;
         //loop through documents
         for (const doc of change.documents) {
-            //details of each document along with if there was an error on that doc
-            const id = doc.id;
-            const flags = doc.flags;
-            const error = doc.error;
-            if (error !== undefined) {
-                isError = true;
-            }
+          //details of each document along with if there was an error on that doc
+          const id = doc.id;
+          const flags = doc.flags;
+          const error = doc.error;
+          if (error !== undefined) {
+            isError = true;
+          }
         }
         didGetDocumentUpdate = true;
       });

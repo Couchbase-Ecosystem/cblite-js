@@ -11,7 +11,7 @@ export class DocumentReplication {
   ) {}
 
   getIsPush(): boolean {
-    return this.isPush
+    return this.isPush;
   }
 
   getDocuments(): ReplicatedDocument[] {
@@ -25,17 +25,17 @@ export interface DocumentReplicationRepresentation {
 }
 
 export function isDocumentReplicationRepresentation(
-  obj: any,
+  obj: any
 ): obj is DocumentReplicationRepresentation {
   try {
     const object: DocumentReplicationRepresentation = obj;
-    object.documents.forEach(document => {
+    object.documents.forEach((document) => {
       if (!isReplicatedDocumentRepresentation(document)) {
         throw 'invalid replicated document';
       }
     });
     const isPush: boolean | undefined = object.isPush;
-    if (isPush == undefined) {
+    if (isPush === undefined) {
       throw 'unrecognized replication isPush ';
     }
     return true;

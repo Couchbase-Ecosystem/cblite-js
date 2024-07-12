@@ -4,8 +4,7 @@ import { Expression } from './expression';
  * Full-text expression
  */
 export class FullTextExpression {
-  private constructor(private name: string) {
-  }
+  private constructor(private name: string) {}
   /**
    * Creates a full-text expression with the given full-text index name.
    *
@@ -25,15 +24,17 @@ export class FullTextExpression {
   public match(query: string): Expression {
     return new FullTextMatchExpression(this.name, query);
   }
-
 }
 
 export class FullTextMatchExpression extends Expression {
-  constructor(private indexName: string, private text: string) {
+  constructor(
+    private indexName: string,
+    private text: string
+  ) {
     super();
   }
 
   asJSON(): any {
-    return ["MATCH()", this.indexName, this.text];
+    return ['MATCH()', this.indexName, this.text];
   }
 }

@@ -6,7 +6,7 @@ export class MutableDocument extends Document {
   constructor(
     id: string = null,
     sequenceNo: number = null,
-    data: Dictionary = {},
+    data: Dictionary = {}
   ) {
     super(id, sequenceNo, data);
   }
@@ -15,7 +15,7 @@ export class MutableDocument extends Document {
     return new MutableDocument(
       document.getId(),
       document.getSequence(),
-      document.getData(),
+      document.getData()
     );
   }
 

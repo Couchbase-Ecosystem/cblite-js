@@ -5,17 +5,17 @@ import { TestCase } from './test-case';
 export class TestRunner {
   async *runTests<T extends TestCase>(
     testCase: new () => T,
-    cancelToken: () => boolean,
+    cancelToken: () => boolean
   ): AsyncGenerator<ITestResult, void, unknown> {
     const instance = new testCase();
 
     const methods = Object.getOwnPropertyNames(
-      Object.getPrototypeOf(instance),
+      Object.getPrototypeOf(instance)
     ).filter(
-      prop =>
+      (prop) =>
         prop !== 'constructor' &&
         typeof instance[prop] === 'function' &&
-        prop.startsWith('test'),
+        prop.startsWith('test')
     );
 
     for (const method of methods) {

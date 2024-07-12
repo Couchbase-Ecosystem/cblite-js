@@ -293,15 +293,15 @@ export class FragmentTests extends TestCase {
     };
   }
 
-    /**
+  /**
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
-    async testOutOfRangeArrayFragmentsetValue(): Promise<ITestResult> {
-      return {
-        testName: 'testOutOfRangeArrayFragmentsetValue',
-        success: false,
-        message: 'Not implemented',
-        data: undefined,
-      };
-    }
+  async testOutOfRangeArrayFragmentsetValue(): Promise<ITestResult> {
+    return {
+      testName: 'testOutOfRangeArrayFragmentsetValue',
+      success: false,
+      message: 'Not implemented',
+      data: undefined,
+    };
+  }
 }

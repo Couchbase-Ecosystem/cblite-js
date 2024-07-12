@@ -10,6 +10,6 @@ export class VariableExpression extends Expression {
   }
 
   public asJSON(): any[] {
-    return ["?" + this.name];
+    return ['?' + this.name];
   }
 }
