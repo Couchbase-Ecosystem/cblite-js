@@ -39,6 +39,7 @@ export enum MaintenanceType {
  * A Couchbase Lite database.
  */
 export class Database {
+  private _isClosed = false;
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
   public log = new DatabaseLogging(this);
 
@@ -57,10 +58,12 @@ export class Database {
    * @function
    */
   open() {
-    return this._engine.database_Open({
+    const result = this._engine.database_Open({
       name: this._databaseName,
       config: this._databaseConfig,
     });
+    this._isClosed = false;
+    return result;
   }
 
   /**
@@ -83,7 +86,9 @@ export class Database {
    * @function
    */
   close() {
-    return this._engine.database_Close({ name: this._databaseName });
+    const result = this._engine.database_Close({ name: this._databaseName });
+    this._isClosed = true;
+    return result;
   }
 
   /**
@@ -133,6 +138,11 @@ export class Database {
    * @function
    */
   deleteDatabase() {
+    if (this._isClosed) {
+      throw new Error(
+        'Cannot delete a closed database using this API.  Open the database first.'
+      );
+    }
     return this._engine.database_Delete({ name: this._databaseName });
   }
 
