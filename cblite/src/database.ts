@@ -195,6 +195,18 @@ export class Database {
     fn();
     return Promise.reject(null);
   }
+  /**
+   * Set log level for the given log domain.
+   *
+   * @function
+   */
+  static setLogLevel(domain: LogDomain, level: LogLevel): Promise<void> {
+    const engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+    return engine.database_SetLogLevel({
+      domain: domain,
+      logLevel: level,
+    });
+  }
 
   /**
    * Set log level for the given log domain.
