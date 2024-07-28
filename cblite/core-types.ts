@@ -246,8 +246,8 @@ export interface DatabaseDeleteIndexArgs extends DatabaseArgs {
  * @property {string} existsName - The unique name of the database
  * @property {string} directory - The full path to the database on the device
  */
-export interface DatabaseExistsArgs extends DatabaseArgs {
-  existsName: string;
+export interface DatabaseExistsArgs {
+  databaseName: string;
   directory: string;
 }
 
@@ -657,6 +657,8 @@ export interface ICoreEngine {
   database_CreateIndex(args: DatabaseCreateIndexArgs): Promise<void>;
 
   database_Delete(args: DatabaseArgs): Promise<void>;
+
+  database_DeleteWithPath(args: DatabaseExistsArgs): Promise<void>;
 
   /**
    * @deprecated This will be removed in future versions. Use Collection_DeleteDocument instead.

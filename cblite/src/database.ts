@@ -5,7 +5,12 @@ import { DatabaseLogging } from './database-logging';
 import { AbstractIndex } from './abstract-index';
 import { EngineLocator } from './engine-locator';
 import { ConcurrencyControl } from './concurrency-control';
-import { CollectionsResult, ICoreEngine, ScopeArgs } from '../core-types';
+import {
+  CollectionsResult,
+  DatabaseExistsArgs,
+  ICoreEngine,
+  ScopeArgs,
+} from '../core-types';
 import { Collection } from './collection';
 import { Scope } from './scope';
 import { Query } from './query';
@@ -147,6 +152,20 @@ export class Database {
   }
 
   /**
+   * Deletes a database.
+   *
+   * @function
+   */
+  static async deleteDatabase(databaseName: string, directory: string) {
+    const engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+    const args: DatabaseExistsArgs = {
+      databaseName: databaseName,
+      directory: directory,
+    };
+    await engine.database_DeleteWithPath(args);
+  }
+
+  /**
    * Return the database's path.
    *
    * @function
@@ -161,12 +180,13 @@ export class Database {
    *
    * @function
    */
-  async exists(name: string, directory: string): Promise<boolean> {
-    const ret = await this._engine.database_Exists({
-      name: this._databaseName,
-      existsName: name,
+  static async exists(name: string, directory: string): Promise<boolean> {
+    const engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+    const args: DatabaseExistsArgs = {
+      databaseName: name,
       directory: directory,
-    });
+    };
+    const ret = await engine.database_Exists(args);
     return ret.exists;
   }
 
@@ -259,7 +279,7 @@ export class Database {
       } as ScopeArgs);
       return new Scope(scope.name, this);
     } catch (error) {
-      return undefined;
+      throw error;
     }
   }
 
