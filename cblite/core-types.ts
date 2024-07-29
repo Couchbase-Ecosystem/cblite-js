@@ -793,4 +793,6 @@ export interface ICoreEngine {
   scope_GetScope(args: ScopeArgs): Promise<Scope>;
 
   scope_GetScopes(args: DatabaseArgs): Promise<ScopesResult>;
+
+  getUUID(): string;
 }

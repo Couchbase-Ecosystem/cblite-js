@@ -3,7 +3,6 @@ import { Database } from './database';
 import { EngineLocator } from './engine-locator';
 import { ResultSet } from './result';
 import { Parameters } from './parameters';
-import { uuid } from './util/uuid';
 
 /**
  * A database query. A Query instance can be constructed by calling
@@ -34,7 +33,7 @@ export class Query {
    */
   async addChangeListener(listener: QueryChangeListener): Promise<string> {
     this._changeListener = listener;
-    const token = uuid();
+    const token = this._engine.getUUID();
     if (!this._didStartQueryListener) {
       await this._engine.query_AddChangeListener(
         {

@@ -40,4 +40,3 @@ export * from './session-authenticator';
 export * from './url-endpoint';
 export * from './value-index';
 export * from './variable-expression';
-export * from './util/uuid';

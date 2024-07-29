@@ -12,8 +12,6 @@ import {
   ICoreEngine,
 } from '../core-types';
 
-import { uuid } from './util/uuid';
-
 export class Collection {
   //used for engine calls
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
@@ -73,7 +71,7 @@ export class Collection {
    */
   async addChangeListener(listener: CollectionChangeListener): Promise<string> {
     this._changeListener = listener;
-    const token = uuid();
+    const token = this.uuid();
     if (!this._didStartListener) {
       await this._engine.collection_AddChangeListener(
         {
@@ -105,7 +103,7 @@ export class Collection {
     documentId: string,
     listener: DocumentChangeListener
   ): Promise<string> {
-    const token = uuid();
+    const token = this.uuid();
     if (
       !this._didStartDocumentListener.has(documentId) &&
       !this._documentChangeListener[documentId]
@@ -411,5 +409,9 @@ export class Collection {
       scopeName: this.scope.name,
       databaseName: this.database.getName(),
     };
+  }
+
+  private uuid(): string {
+    return this._engine.getUUID();
   }
 }

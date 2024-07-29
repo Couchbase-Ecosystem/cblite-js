@@ -1,5 +1,4 @@
 import { ReplicatorConfiguration } from './replicator-configuration';
-import { uuid } from './util/uuid';
 import {
   ICoreEngine,
   ReplicatorChangeListener,
@@ -52,7 +51,7 @@ export class Replicator {
    */
   async addChangeListener(listener: ReplicatorChangeListener): Promise<string> {
     this._statusChangeListener = listener;
-    const token = uuid();
+    const token = this._engine.getUUID();
     if (!this._didStartStatusChangeListener) {
       await this._engine.replicator_AddChangeListener(
         {
@@ -76,7 +75,7 @@ export class Replicator {
   async addDocumentChangeListener(
     listener: ReplicatorDocumentChangeListener
   ): Promise<string> {
-    const token = uuid();
+    const token = this._engine.getUUID();
     this._documentChangeListener.set(token, listener);
     await this._engine.replicator_AddDocumentChangeListener(
       {

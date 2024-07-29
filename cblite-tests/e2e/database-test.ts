@@ -9,7 +9,6 @@ import {
   FileSystem,
   MaintenanceType,
   MutableDocument,
-  uuid,
 } from '../../cblite';
 
 /**
@@ -322,8 +321,9 @@ export class DatabaseTests extends TestCase {
 
   async testDatabaseEncryptionChangeKey(): Promise<ITestResult> {
     try {
+      const engine = this.getEngine();
       //setup database
-      const dbName = `db${uuid().toString().replace(/-/g, '')}`;
+      const dbName = `db${engine.getUUID().replace(/-/g, '')}`;
       const config = new DatabaseConfiguration();
       const configNoEncryption = new DatabaseConfiguration();
       const filePathResult = await this.getPlatformPath();

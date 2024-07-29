@@ -6,7 +6,8 @@ import {
   MutableDocument,
   DatabaseConfiguration,
   Dictionary,
-  uuid,
+  ICoreEngine,
+  EngineLocator,
 } from '../../cblite';
 
 import { assert } from 'chai';
@@ -36,7 +37,8 @@ export class TestCase {
     try {
       //try to get the platform local directory - can't run tests if we can't save a database to a directory
       //this.databaseName = `db${uuid().toString()}`;
-      this.databaseName = `db${uuid().toString().replace(/-/g, '')}`;
+      const engine = this.getEngine();
+      this.databaseName = `db${engine.getUUID().replace(/-/g, '')}`;
       const filePathResult = await this.getPlatformPath();
       if (filePathResult.success) {
         this.directory = filePathResult.data;
@@ -172,8 +174,7 @@ export class TestCase {
     try {
       config.directory = path ?? '';
       config.encryptionKey = encryptionKey ?? '';
-      const db = new Database(name, config);
-      return db;
+      return new Database(name, config);
     } catch (error) {
       return JSON.stringify(error);
     }
@@ -196,8 +197,7 @@ export class TestCase {
     const savedDoc = await withCollection.document(withId);
     assert.equal(savedDoc?.getId(), withId);
     assert.equal(savedDoc?.getSequence(), 1);
-    const mutableSavedDoc = MutableDocument.fromDocument(savedDoc);
-    return mutableSavedDoc;
+    return MutableDocument.fromDocument(savedDoc);
   }
 
   createDocumentWithIdAndData(id: string, data: Dictionary): MutableDocument {
@@ -243,7 +243,7 @@ export class TestCase {
       }
     } catch (error) {
       throw new Error(
-        `Can't create collection docs in collection ${withCollection.name}: ${JSON.stringify(error)}`
+        `Call to ${methodName} failed: Can't create collection docs in collection ${withCollection.name}: ${JSON.stringify(error)}`
       );
     }
     return docs;
@@ -435,5 +435,9 @@ export class TestCase {
 
   sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  getEngine(): ICoreEngine {
+    return EngineLocator.getEngine(EngineLocator.key);
   }
 }
