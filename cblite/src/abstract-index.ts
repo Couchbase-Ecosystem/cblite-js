@@ -1,10 +1,9 @@
-export interface Index {
-}
+export interface Index {}
 
 export enum IndexType {
   Value = 0,
   FullText = 1,
-  Geo = 2
+  Geo = 2,
 }
 
 export abstract class AbstractIndex implements Index {

@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 import { Document } from './document';
 import { MutableDocument } from './mutable-document';
 import { DatabaseConfiguration } from './database-configuration';
@@ -7,10 +5,15 @@ import { DatabaseLogging } from './database-logging';
 import { AbstractIndex } from './abstract-index';
 import { EngineLocator } from './engine-locator';
 import { ConcurrencyControl } from './concurrency-control';
-import {CollectionsResult, ICoreEngine, ScopeArgs} from '../core-types';
+import {
+  CollectionsResult,
+  DatabaseExistsArgs,
+  ICoreEngine,
+  ScopeArgs,
+} from '../core-types';
 import { Collection } from './collection';
-import { Scope } from "./scope";
-import { Query } from "./query";
+import { Scope } from './scope';
+import { Query } from './query';
 
 export enum LogDomain {
   ALL = 'ALL',
@@ -41,15 +44,14 @@ export enum MaintenanceType {
  * A Couchbase Lite database.
  */
 export class Database {
-
+  private _isClosed = false;
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
   public log = new DatabaseLogging(this);
 
   constructor(
-      private _databaseName: string,
-      private _databaseConfig: DatabaseConfiguration = null,
-  ) {
-  }
+    private _databaseName: string,
+    private _databaseConfig: DatabaseConfiguration = null
+  ) {}
 
   getEngine() {
     return this._engine;
@@ -61,25 +63,26 @@ export class Database {
    * @function
    */
   open() {
-    return this._engine.database_Open({
+    const result = this._engine.database_Open({
       name: this._databaseName,
       config: this._databaseConfig,
     });
+    this._isClosed = false;
+    return result;
   }
 
-   /**
-   * Changes the database’s encryption key, or removes 
-   * encryption if the new key is nil. 
+  /**
+   * Changes the database’s encryption key, or removes
+   * encryption if the new key is nil.
    *
    * @function
    */
-  async changeEncryptionKey(newKey: string | null)
-    :Promise<void> {
-     await this._engine.database_ChangeEncryptionKey({
+  async changeEncryptionKey(newKey: string | null): Promise<void> {
+    await this._engine.database_ChangeEncryptionKey({
       name: this._databaseName,
-      newKey: newKey
+      newKey: newKey,
     });
-     this._databaseConfig.setEncryptionKey(newKey);
+    this._databaseConfig.setEncryptionKey(newKey);
   }
 
   /**
@@ -88,7 +91,9 @@ export class Database {
    * @function
    */
   close() {
-    return this._engine.database_Close({name: this._databaseName});
+    const result = this._engine.database_Close({ name: this._databaseName });
+    this._isClosed = true;
+    return result;
   }
 
   /**
@@ -97,7 +102,10 @@ export class Database {
    * @function
    */
   compact(): Promise<void> {
-    const args = {name: this._databaseName, maintenanceType: MaintenanceType.COMPACT};
+    const args = {
+      name: this._databaseName,
+      maintenanceType: MaintenanceType.COMPACT,
+    };
     return this._engine.database_PerformMaintenance(args);
   }
 
@@ -107,7 +115,7 @@ export class Database {
    * @function
    */
   performMaintenance(maintenanceType: MaintenanceType): Promise<void> {
-    const args = {name: this._databaseName, maintenanceType: maintenanceType};
+    const args = { name: this._databaseName, maintenanceType: maintenanceType };
     return this._engine.database_PerformMaintenance(args);
   }
 
@@ -117,9 +125,9 @@ export class Database {
    * @function
    */
   copy(
-      path: string,
-      name: string,
-      config: DatabaseConfiguration,
+    path: string,
+    name: string,
+    config: DatabaseConfiguration
   ): Promise<void> {
     return this._engine.database_Copy({
       name: this._databaseName,
@@ -135,7 +143,26 @@ export class Database {
    * @function
    */
   deleteDatabase() {
-    return this._engine.database_Delete({name: this._databaseName});
+    if (this._isClosed) {
+      throw new Error(
+        'Cannot delete a closed database using this API.  Open the database first.'
+      );
+    }
+    return this._engine.database_Delete({ name: this._databaseName });
+  }
+
+  /**
+   * Deletes a database.
+   *
+   * @function
+   */
+  static async deleteDatabase(databaseName: string, directory: string) {
+    const engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+    const args: DatabaseExistsArgs = {
+      databaseName: databaseName,
+      directory: directory,
+    };
+    await engine.database_DeleteWithPath(args);
   }
 
   /**
@@ -144,9 +171,8 @@ export class Database {
    * @function
    */
   async getPath(): Promise<string> {
-    return (
-        await this._engine.database_GetPath({name: this._databaseName})
-    ).path;
+    return (await this._engine.database_GetPath({ name: this._databaseName }))
+      .path;
   }
 
   /**
@@ -154,12 +180,13 @@ export class Database {
    *
    * @function
    */
-  async exists(name: string, directory: string): Promise<boolean> {
-    const ret = await this._engine.database_Exists({
-      name: this._databaseName,
-      existsName: name,
+  static async exists(name: string, directory: string): Promise<boolean> {
+    const engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+    const args: DatabaseExistsArgs = {
+      databaseName: name,
       directory: directory,
-    });
+    };
+    const ret = await engine.database_Exists(args);
     return ret.exists;
   }
 
@@ -187,6 +214,18 @@ export class Database {
   inBatch(fn: () => void): Promise<void> {
     fn();
     return Promise.reject(null);
+  }
+  /**
+   * Set log level for the given log domain.
+   *
+   * @function
+   */
+  static setLogLevel(domain: LogDomain, level: LogLevel): Promise<void> {
+    const engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+    return engine.database_SetLogLevel({
+      domain: domain,
+      logLevel: level,
+    });
   }
 
   /**
@@ -221,7 +260,9 @@ export class Database {
    * @function
    */
   async defaultScope(): Promise<Scope> {
-    const scope = await this._engine.scope_GetDefault({name: this._databaseName});
+    const scope = await this._engine.scope_GetDefault({
+      name: this._databaseName,
+    });
     return new Scope(scope.name, this);
   }
 
@@ -232,10 +273,13 @@ export class Database {
    */
   async scope(scopeName: string): Promise<Scope> {
     try {
-      const scope = await this._engine.scope_GetScope({name: this._databaseName, scopeName: scopeName} as ScopeArgs);
+      const scope = await this._engine.scope_GetScope({
+        name: this._databaseName,
+        scopeName: scopeName,
+      } as ScopeArgs);
       return new Scope(scope.name, this);
-    } catch(error){
-      return undefined;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -245,9 +289,11 @@ export class Database {
    * @function
    */
   async scopes(): Promise<Scope[]> {
-    const results = await this._engine.scope_GetScopes({name: this._databaseName});
+    const results = await this._engine.scope_GetScopes({
+      name: this._databaseName,
+    });
     const scopes: Scope[] = [];
-    for(const scope of results.scopes) {
+    for (const scope of results.scopes) {
       scopes.push(new Scope(scope.name, this));
     }
     return scopes;
@@ -259,7 +305,9 @@ export class Database {
    * @function
    */
   async defaultCollection(): Promise<Collection> {
-    const col = await this._engine.collection_GetDefault({name: this._databaseName});
+    const col = await this._engine.collection_GetDefault({
+      name: this._databaseName,
+    });
     const scope = new Scope(col.scope.name, this);
     return new Collection(col.name, scope, this);
   }
@@ -269,31 +317,37 @@ export class Database {
    *
    * @function
    */
-  async collection(collectionName: string):Promise<Collection>;
+  async collection(collectionName: string): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
   async collection(collectionName: string, scope: Scope): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
-  async collection(collectionName: string, scopeName: string): Promise<Collection>;
+  async collection(
+    collectionName: string,
+    scopeName: string
+  ): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
-  async collection(collectionName: string, scopeOrName?: Scope | string): Promise<Collection | null> {
-    let col:Collection | undefined = undefined;
+  async collection(
+    collectionName: string,
+    scopeOrName?: Scope | string
+  ): Promise<Collection | null> {
+    let col: Collection | undefined;
     if (typeof scopeOrName === 'string') {
       col = await this._engine.collection_GetCollection({
         name: this._databaseName,
         collectionName: collectionName,
-        scopeName: scopeOrName
+        scopeName: scopeOrName,
       });
     } else if (scopeOrName instanceof Scope) {
       col = await this._engine.collection_GetCollection({
         name: this._databaseName,
         collectionName: collectionName,
-        scopeName: scopeOrName.name
+        scopeName: scopeOrName.name,
       });
     } else {
       col = await this._engine.collection_GetCollection({
         name: this._databaseName,
         collectionName: collectionName,
-        scopeName: Database.defaultScopeName
+        scopeName: Database.defaultScopeName,
       });
     }
     const scope = new Scope(col.scope.name, this);
@@ -312,26 +366,31 @@ export class Database {
   // eslint-disable-next-line no-dupe-class-members
   async collections(scope: string): Promise<Collection[]>;
   // eslint-disable-next-line no-dupe-class-members
-  async collections(scopeOrName: Scope | string | undefined): Promise<Collection[]> {
+  async collections(
+    scopeOrName: Scope | string | undefined
+  ): Promise<Collection[]> {
     const collections: Collection[] = [];
-      let colResults: CollectionsResult | undefined = undefined;
-      if (typeof scopeOrName === 'string') {
-        colResults = await this._engine.collection_GetCollections({name: this._databaseName, scopeName: scopeOrName});
-      } else if (scopeOrName instanceof Scope) {
-        colResults = await this._engine.collection_GetCollections({
-          name: this._databaseName,
-          scopeName: scopeOrName.name
-        });
-      } else {
-        colResults = await this._engine.collection_GetCollections({
-          name: this._databaseName,
-          scopeName: Database.defaultScopeName,
-        });
-      }
-      for (const col of colResults.collections) {
-        const scope = new Scope(col.scope.name, this);
-        collections.push(new Collection(col.name, scope, this));
-      }
+    let colResults: CollectionsResult | undefined;
+    if (typeof scopeOrName === 'string') {
+      colResults = await this._engine.collection_GetCollections({
+        name: this._databaseName,
+        scopeName: scopeOrName,
+      });
+    } else if (scopeOrName instanceof Scope) {
+      colResults = await this._engine.collection_GetCollections({
+        name: this._databaseName,
+        scopeName: scopeOrName.name,
+      });
+    } else {
+      colResults = await this._engine.collection_GetCollections({
+        name: this._databaseName,
+        scopeName: Database.defaultScopeName,
+      });
+    }
+    for (const col of colResults.collections) {
+      const scope = new Scope(col.scope.name, this);
+      collections.push(new Collection(col.name, scope, this));
+    }
     return collections;
   }
 
@@ -340,31 +399,40 @@ export class Database {
    *
    * @function
    */
-  async createCollection(collectionName: string):Promise<Collection>;
+  async createCollection(collectionName: string): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
-  async createCollection(collectionName: string, scope: Scope): Promise<Collection>;
+  async createCollection(
+    collectionName: string,
+    scope: Scope
+  ): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
-  async createCollection(collectionName: string, scopeName: string): Promise<Collection>;
+  async createCollection(
+    collectionName: string,
+    scopeName: string
+  ): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
-  async createCollection(collectionName: string, scopeOrName?: Scope | string): Promise<Collection> {
-    let col:Collection | undefined = undefined;
+  async createCollection(
+    collectionName: string,
+    scopeOrName?: Scope | string
+  ): Promise<Collection> {
+    let col: Collection | undefined;
     if (typeof scopeOrName === 'string') {
       col = await this._engine.collection_CreateCollection({
         name: this._databaseName,
         collectionName: collectionName,
-        scopeName: scopeOrName
+        scopeName: scopeOrName,
       });
     } else if (scopeOrName instanceof Scope) {
       col = await this._engine.collection_CreateCollection({
         name: this._databaseName,
         collectionName: collectionName,
-        scopeName: scopeOrName.name
+        scopeName: scopeOrName.name,
       });
     } else {
       col = await this._engine.collection_CreateCollection({
         name: this._databaseName,
         collectionName: collectionName,
-        scopeName: Database.defaultScopeName
+        scopeName: Database.defaultScopeName,
       });
     }
     const scope = new Scope(col.scope.name, this);
@@ -380,18 +448,21 @@ export class Database {
   // eslint-disable-next-line no-dupe-class-members
   deleteCollection(collectionName: string, scopeName: string): Promise<void>;
   // eslint-disable-next-line no-dupe-class-members
-  deleteCollection(collectionOrName: Collection | string, scopeName?: string): Promise<void> {
+  deleteCollection(
+    collectionOrName: Collection | string,
+    scopeName?: string
+  ): Promise<void> {
     if (typeof collectionOrName === 'string' && scopeName !== undefined) {
       return this._engine.collection_DeleteCollection({
         name: this._databaseName,
         collectionName: collectionOrName,
-        scopeName: scopeName
+        scopeName: scopeName,
       });
     } else if (collectionOrName instanceof Collection) {
       return this._engine.collection_DeleteCollection({
         name: this._databaseName,
         collectionName: collectionOrName.name,
-        scopeName: collectionOrName.scope.name
+        scopeName: collectionOrName.scope.name,
       });
     } else {
       throw new Error('Invalid arguments');
@@ -404,8 +475,8 @@ export class Database {
    * @function
    */
   deleteDocument(
-      document: Document,
-      concurrencyControl: ConcurrencyControl = null,
+    document: Document,
+    concurrencyControl: ConcurrencyControl = null
   ): Promise<void> {
     const id = document.getId();
     return this._engine.database_DeleteDocument({
@@ -450,9 +521,12 @@ export class Database {
       docId: id,
     });
     if (docJson) {
-      const data = docJson['_data'];
-      const sequence = docJson['_sequence'];
-      const retId = docJson['_id'];
+      // @ts-ignore
+      const data = docJson._data;
+      // @ts-ignore
+      const sequence = docJson._sequence;
+      // @ts-ignore
+      const retId = docJson._id;
       return Promise.resolve(new Document(retId, sequence, data));
     } else {
       return Promise.resolve(null);
@@ -465,8 +539,8 @@ export class Database {
    * @function
    */
   async save(
-      document: MutableDocument,
-      concurrencyControl: ConcurrencyControl = null,
+    document: MutableDocument,
+    concurrencyControl: ConcurrencyControl = null
   ): Promise<void> {
     const ret = await this._engine.database_Save({
       name: this._databaseName,
@@ -501,9 +575,9 @@ export class Database {
    */
   async getIndexes(): Promise<string[]> {
     return (
-        await this._engine.database_GetIndexes({
-          name: this._databaseName,
-        })
+      await this._engine.database_GetIndexes({
+        name: this._databaseName,
+      })
     ).indexes;
   }
 

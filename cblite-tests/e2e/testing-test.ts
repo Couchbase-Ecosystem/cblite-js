@@ -30,11 +30,15 @@ export class TestingTests extends TestCase {
    * @returns {Promise<ITestResult>} A promise that resolves to an ITestResult object which contains the result of the verification.
    */
   async testRunnerFail(): Promise<ITestResult> {
-    let exception = new CouchbaseLiteException('testRunnerFail', 'This is a test exception', 500);
+    let exception = new CouchbaseLiteException(
+      'testRunnerFail',
+      'This is a test exception',
+      500
+    );
     return {
       testName: 'testRunnerFail',
       success: false,
-      message:  JSON.stringify(exception),
+      message: JSON.stringify(exception),
       data: undefined,
     };
   }

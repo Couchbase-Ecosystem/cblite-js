@@ -1,8 +1,10 @@
 export class Blob {
   public digest: string;
   public length: number;
-  constructor(private contentType: string, private bytes: ArrayBuffer) {
-  }
+  constructor(
+    private contentType: string,
+    private bytes: ArrayBuffer
+  ) {}
 
   getContentType() {
     return this.contentType;
@@ -19,7 +21,7 @@ export class Blob {
   toDictionary() {
     return {
       contentType: this.contentType,
-      data: Array.from(new Uint8Array(this.bytes))
-    }
+      data: Array.from(new Uint8Array(this.bytes)),
+    };
   }
 }

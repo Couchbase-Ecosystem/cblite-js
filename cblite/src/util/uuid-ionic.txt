@@ -7,7 +7,7 @@ let rng: any;
 
 // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation.
 var getRandomValues = (typeof(crypto) != 'undefined' && crypto.getRandomValues.bind(crypto));
-                      
+
 if (getRandomValues) {
   // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
   var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
@@ -55,7 +55,7 @@ function bytesToUuid(buf: any, offset: any) {
           bth[buf[i++]] + bth[buf[i++]];
 }
 
-export function uuid(options: any = {}, buf: any = null, offset: any = null) {
+export function uuidIonic(options: any = {}, buf: any = null, offset: any = null) {
   var i = buf && offset || 0;
 
   if (typeof(options) == 'string') {

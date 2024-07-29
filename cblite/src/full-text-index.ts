@@ -1,11 +1,10 @@
-import { AbstractIndex, IndexType } from "./abstract-index";
-import { Expression } from "./expression";
+import { AbstractIndex, IndexType } from './abstract-index';
+import { Expression } from './expression';
 
 /**
  * Index for Full-Text search
  */
 export class FullTextIndex extends AbstractIndex {
-
   private indexItems: FullTextIndexItem[];
   private _language = FullTextIndex.getDefaultLanguage();
   private _ignoreAccents = false;
@@ -59,13 +58,13 @@ export class FullTextIndex extends AbstractIndex {
       type: 'full-text',
       language: this._language,
       ignoreAccents: this._ignoreAccents,
-      items: this.items()
-    }
+      items: this.items(),
+    };
   }
 
   private static getDefaultLanguage(): string {
     return 'en';
-      //return Locale.getDefault().getLanguage();
+    //return Locale.getDefault().getLanguage();
   }
 }
 

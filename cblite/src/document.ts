@@ -8,7 +8,7 @@ export class Document {
   constructor(
     protected id: string = null,
     protected sequenceNo: number = null,
-    data: Dictionary = {},
+    data: Dictionary = {}
   ) {
     this.doc = data;
   }
@@ -40,17 +40,18 @@ export class Document {
     return this._get(key);
   }
 
-  async getBlobContent(key: string, collection: Collection): Promise<ArrayBuffer> {
-    const data = await collection
-      .getEngine()
-      .collection_GetBlobContent({
-        documentId: this.getId(),
-        key: key,
-        collectionName: collection.name,
-        scopeName: collection.scope.name,
-        name: collection.scope.database.getName(),
-      });
-      return data.data;
+  async getBlobContent(
+    key: string,
+    collection: Collection
+  ): Promise<ArrayBuffer> {
+    const data = await collection.getEngine().collection_GetBlobContent({
+      documentId: this.getId(),
+      key: key,
+      collectionName: collection.name,
+      scopeName: collection.scope.name,
+      name: collection.scope.database.getName(),
+    });
+    return data.data;
   }
 
   getBoolean(key: string) {

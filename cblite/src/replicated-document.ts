@@ -1,9 +1,6 @@
-import { Collection } from "./collection";
-import { Scope } from "./scope";
-
 export enum ReplicatedDocumentFlag {
-  DELETED = "DELETED",
-  ACCESS_REMOVED = "ACCESS_REMOVED",
+  DELETED = 'DELETED',
+  ACCESS_REMOVED = 'ACCESS_REMOVED',
 }
 
 export class ReplicatedDocument {
@@ -29,35 +26,39 @@ export class ReplicatedDocument {
 }
 
 export interface ReplicatedDocumentRepresentation {
-  id: string,
-  flags: string[],
-  scopeName: string,
-  collectionName: string,
+  id: string;
+  flags: string[];
+  scopeName: string;
+  collectionName: string;
   error: {
     message: string;
-  }
+  };
 }
 
-export function isReplicatedDocumentRepresentation(obj: any): obj is ReplicatedDocumentRepresentation {
+export function isReplicatedDocumentRepresentation(
+  obj: any
+): obj is ReplicatedDocumentRepresentation {
   try {
-    const object: ReplicatedDocumentRepresentation = obj
-    object.flags.forEach(flag => {
-      const flagTest: ReplicatedDocumentFlag | undefined = (<any>ReplicatedDocumentFlag)[flag];
-      if (flagTest == undefined) {
-        throw "unrecognized replication flag " + flag;
+    const object: ReplicatedDocumentRepresentation = obj;
+    object.flags.forEach((flag) => {
+      const flagTest: ReplicatedDocumentFlag | undefined = (<any>(
+        ReplicatedDocumentFlag
+      ))[flag];
+      if (flagTest === undefined) {
+        throw 'unrecognized replication flag ' + flag;
       }
     });
-    if (object.id == null) {
-      throw "document id cannot be null";
+    if (object.id === null) {
+      throw 'document id cannot be null';
     }
-    if (object.error != null) {
-      if (object.error.message == null) {
-        throw "document error is incomplete";
+    if (object.error !== null) {
+      if (object.error.message === null) {
+        throw 'document error is incomplete';
       }
     }
-    return true
+    return true;
   } catch (e) {
-    console.warn("Invalid ReplicatedDocumentRepresentation:", e)
-    return false
+    console.warn('Invalid ReplicatedDocumentRepresentation:', e);
+    return false;
   }
 }
