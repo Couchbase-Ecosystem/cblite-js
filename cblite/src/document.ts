@@ -1,6 +1,7 @@
 import { Dictionary } from './definitions';
 import { Blob } from './blob';
 import { Collection } from './collection';
+import { MutableDocument } from './mutable-document';
 
 export class Document {
   protected doc: Dictionary = {};
@@ -104,5 +105,9 @@ export class Document {
 
   toDictionary() {
     return this.doc;
+  }
+
+  toMutableDocument(): MutableDocument {
+    return new MutableDocument(this.id, this.sequenceNo, this.doc);
   }
 }
