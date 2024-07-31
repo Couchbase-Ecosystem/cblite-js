@@ -106,8 +106,4 @@ export class Document {
   toDictionary() {
     return this.doc;
   }
-
-  toMutableDocument(): MutableDocument {
-    return new MutableDocument(this.id, this.sequenceNo, this.doc);
-  }
 }
