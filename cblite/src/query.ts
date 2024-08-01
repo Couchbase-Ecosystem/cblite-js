@@ -99,7 +99,7 @@ export class Query {
    *
    * @function
    */
-  async explain(): Promise<ResultSet> {
+  async explain(): Promise<string> {
     if (this.parameters === undefined) {
       this.parameters = new Parameters();
     }
@@ -108,8 +108,7 @@ export class Query {
       query: this._queryString,
       parameters: this.parameters.get(),
     });
-    const data = queryResults.data;
-    return JSON.parse(data);
+    return queryResults.data;
   }
 
   getDatabase() {

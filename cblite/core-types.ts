@@ -742,7 +742,7 @@ export interface ICoreEngine {
 
   query_Execute(args: QueryExecuteArgs): Promise<Result>;
 
-  query_Explain(args: QueryExecuteArgs): Promise<Result>;
+  query_Explain(args: QueryExecuteArgs): Promise<{ data: string }>;
 
   query_RemoveChangeListener(
     args: QueryRemoveChangeListenerArgs
