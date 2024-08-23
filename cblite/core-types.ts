@@ -500,12 +500,12 @@ export interface ICoreEngine {
   collection_AddChangeListener(
     args: CollectionChangeListenerArgs,
     lcb: ListenerCallback
-  ): Promise<ListenerHandle>;
+  ): Promise<void>;
 
   collection_AddDocumentChangeListener(
     args: DocumentChangeListenerArgs,
     lcb: ListenerCallback
-  ): Promise<ListenerHandle>;
+  ): Promise<void>;
 
   collection_CreateCollection(args: CollectionArgs): Promise<Collection>;
 
@@ -631,7 +631,7 @@ export interface ICoreEngine {
   ): Promise<CollectionDocumentSaveResult>;
 
   /**
-   * Set an existing document exipiration date by document ID.
+   * Set an existing document expiration date by document ID.
    *
    * Throws an error if the collection is deleted or the database is closed.
    *
@@ -738,7 +738,7 @@ export interface ICoreEngine {
   query_AddChangeListener(
     args: QueryChangeListenerArgs,
     lcb: ListenerCallback
-  ): Promise<ListenerHandle>;
+  ): Promise<void>;
 
   query_Execute(args: QueryExecuteArgs): Promise<Result>;
 
@@ -754,12 +754,12 @@ export interface ICoreEngine {
   replicator_AddChangeListener(
     args: ReplicationChangeListenerArgs,
     lcb: ListenerCallback
-  ): Promise<ListenerHandle>;
+  ): Promise<void>;
 
   replicator_AddDocumentChangeListener(
     args: ReplicationChangeListenerArgs,
     lcb: ListenerCallback
-  ): Promise<ListenerHandle>;
+  ): Promise<void>;
 
   replicator_Cleanup(args: ReplicatorArgs): Promise<void>;
 
