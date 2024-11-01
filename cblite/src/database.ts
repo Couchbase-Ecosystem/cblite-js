@@ -271,15 +271,15 @@ export class Database {
    *
    * @function
    */
-  async scope(scopeName: string): Promise<Scope> {
+  async scope(scopeName: string): Promise<Scope | undefined> {
     try {
       const scope = await this._engine.scope_GetScope({
         name: this._databaseName,
         scopeName: scopeName,
       } as ScopeArgs);
       return new Scope(scope.name, this);
-    } catch (error) {
-      throw error;
+    } catch {
+      return undefined;
     }
   }
 
