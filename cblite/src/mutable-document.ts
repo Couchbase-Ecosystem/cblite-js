@@ -1,3 +1,4 @@
+import { Collection } from './collection';
 import { Document } from './document';
 import { Dictionary } from './definitions';
 import { Blob } from './blob';
@@ -6,16 +7,18 @@ export class MutableDocument extends Document {
   constructor(
     id: string = null,
     sequenceNo: number = null,
-    data: Dictionary = {}
+    data: Dictionary = {},
+    collection: Collection = null,
   ) {
-    super(id, sequenceNo, data);
+    super(id, sequenceNo, collection, data);
   }
 
   static fromDocument(document: Document) {
     return new MutableDocument(
       document.getId(),
       document.getSequence(),
-      document.getData()
+      document.getData(),
+      document.getCollection()
     );
   }
 
@@ -29,7 +32,6 @@ export class MutableDocument extends Document {
   }
 
   setId(id: string) {
-    // this._set('_id', id);
     this.id = id;
   }
 
@@ -53,6 +55,10 @@ export class MutableDocument extends Document {
   setBoolean(key: string, value: boolean): MutableDocument {
     this.doc[key] = value;
     return this;
+  }
+
+  setCollection(collection: Collection) {
+    this.collection = collection;
   }
 
   setData(data: Dictionary): MutableDocument {

@@ -12,6 +12,12 @@ import {
   ICoreEngine,
 } from '../core-types';
 
+interface CollectionJson {
+  name: string;
+  scopeName: string;
+  databaseName: string;
+}
+
 export class Collection {
   //used for engine calls
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
@@ -214,15 +220,15 @@ export class Collection {
       scopeName: this.scope.name,
       collectionName: this.name,
     });
-    // @ts-ignore
+    // @ts-expect-error - _id is used in getId()
     if (docJson && docJson._id) {
-      // @ts-ignore
+      // @ts-expect-error - _data is used in getData()
       const data = docJson._data;
-      // @ts-ignore
+      // @ts-expect-error - _sequence is used in getSequence()
       const sequence = docJson._sequence;
-      // @ts-ignore
+      // @ts-expect-error - _id is used in getId()
       const retId = docJson._id;
-      return Promise.resolve(new Document(retId, sequence, data));
+      return Promise.resolve(new Document(retId, sequence, this, data));
     } else {
       return Promise.resolve(undefined);
     }
@@ -388,6 +394,7 @@ export class Collection {
 
     const id = ret._id;
     document.setId(id);
+    document.setCollection(this);
   }
 
   async setDocumentExpiration(
@@ -403,7 +410,7 @@ export class Collection {
     });
   }
 
-  toJson(): any {
+  toJson(): CollectionJson {
     return {
       name: this.name,
       scopeName: this.scope.name,
