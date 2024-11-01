@@ -51,7 +51,7 @@ export class MutableDocument extends Document {
   }
 
   setBoolean(key: string, value: boolean): MutableDocument {
-    this._set(key, value);
+    this.doc[key] = value;
     return this;
   }
 
