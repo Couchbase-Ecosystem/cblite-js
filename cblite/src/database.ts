@@ -80,7 +80,7 @@ export class Database {
    *
    * @function
    */
-  open() {
+  open(): Promise<void> {
     const result = this._engine.database_Open({
       name: this._databaseName,
       config: this._databaseConfig,
@@ -558,7 +558,8 @@ export class Database {
     const ret = await this._engine.database_Save({
       name: this._databaseName,
       id: document.getId(),
-      document: document.toDictionary(),
+      document: document.toJsonString(),
+      blobs: document.blobsToJsonString(),
       concurrencyControl: concurrencyControl,
     });
 

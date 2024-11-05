@@ -228,7 +228,9 @@ export class Collection {
       const sequence = docJson._sequence;
       // @ts-expect-error - _id is used in getId()
       const retId = docJson._id;
-      return Promise.resolve(new Document(retId, sequence, this, data));
+      // @ts-expect-error - _revId is used in getRevisionID()
+      const revisionID = docJson._revId;
+      return Promise.resolve(new Document(retId, sequence, revisionID, this, data));
     } else {
       return Promise.resolve(undefined);
     }
@@ -383,17 +385,21 @@ export class Collection {
     document: MutableDocument,
     concurrencyControl: ConcurrencyControl = null
   ): Promise<void> {
+    const blobString = document.blobsToJsonString();
+    const documentString = document.toJsonString();
     const ret = await this._engine.collection_Save({
       id: document.getId(),
-      document: document.toDictionary(),
+      document: documentString,
+      blobs: blobString,
       concurrencyControl: concurrencyControl,
       name: this.scope.database.getName(),
       scopeName: this.scope.name,
       collectionName: this.name,
     });
 
-    const id = ret._id;
-    document.setId(id);
+    document.setId(ret._id);
+    document.setRevisionID(ret._revId);
+    document.setSequence(ret._sequence);
     document.setCollection(this);
   }
 
