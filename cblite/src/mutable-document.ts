@@ -56,6 +56,15 @@ export class MutableDocument extends Document {
     );
   }
 
+  static fromJSON(documentId: string, jsonString: string): MutableDocument {
+    try {
+      const data = JSON.parse(jsonString);
+      return new MutableDocument(documentId, data);
+    } catch (e) {
+      throw new Error(`Failed to parse JSON string: ${e.message}`);
+    }
+  }
+
   remove(key: string): MutableDocument {
     const parts = key.split('.');
     let current = this.doc;

@@ -75,7 +75,7 @@ export class Document {
     if (key in this.doc) {
       const data = this._get(key);
       if (data && typeof data === 'object' && 'content_type' in data) {
-        const b = new Blob(data.content_type, null);
+        const b = new Blob(data.content_type, data.raw);
         b.digest = data.digest;
         b.length = data.length;
         return b;
@@ -85,6 +85,8 @@ export class Document {
   }
 
   /**
+   * @deprecated  - use the Blob API getBytes() function instead
+   * 
    * Get a property’s value as a ArrayBuffer. Returns null if the property doesn’t exist,
    * or its value is not a blob.
    *
