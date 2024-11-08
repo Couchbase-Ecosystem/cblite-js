@@ -146,20 +146,27 @@ export class Query {
    * @function
    */
   async removeChangeListener(token: string) {
-    try {
-      await this._database.getEngine().query_RemoveChangeListener({
-        changeListenerToken: token,
-        name: this._database.getName(),
-      });
-    } catch (error) {
-      throw error;
-    }
+   await this._database.getEngine().query_RemoveChangeListener({
+    changeListenerToken: token,
+    name: this._database.getName(),
+  });
   }
 
   setDatabase(database: Database) {
     this._database = database;
   }
 
+  /**
+   * Returns the query string used to create this Query instance
+   * @returns {string} The original query string
+   * @example
+   * const query = new Query("SELECT * FROM users WHERE age >= $minAge", database);
+   * console.log(query.toString());
+   * // Returns: "SELECT * FROM users WHERE age >= $minAge"
+   * 
+   * // Useful for debugging or logging query definitions
+   * console.log(`Current query: ${query}`); // Automatically calls toString()
+   */
   toString() {
     return this._queryString;
   }

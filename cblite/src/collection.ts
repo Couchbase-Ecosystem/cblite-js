@@ -12,6 +12,12 @@ import {
   ICoreEngine,
 } from '../core-types';
 
+interface CollectionJson {
+  name: string;
+  scopeName: string;
+  databaseName: string;
+}
+
 export class Collection {
   //used for engine calls
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
@@ -214,18 +220,31 @@ export class Collection {
       scopeName: this.scope.name,
       collectionName: this.name,
     });
-    // @ts-ignore
+    // @ts-expect-error - _id is used in getId()
     if (docJson && docJson._id) {
-      // @ts-ignore
+      // @ts-expect-error - _data is used in getData()
       const data = docJson._data;
-      // @ts-ignore
+      // @ts-expect-error - _sequence is used in getSequence()
       const sequence = docJson._sequence;
-      // @ts-ignore
+      // @ts-expect-error - _id is used in getId()
       const retId = docJson._id;
-      return Promise.resolve(new Document(retId, sequence, data));
+      // @ts-expect-error - _revId is used in getRevisionID()
+      const revisionID = docJson._revId;
+      return Promise.resolve(new Document(retId, sequence, revisionID, this, data));
     } else {
       return Promise.resolve(undefined);
     }
+  }
+
+ /**
+  * Get an existing document by document ID.
+  *
+  * Throws an error if the collection is deleted or the database is closed.
+  *
+  * @function
+  */
+  async getDocument(id: string): Promise<Document> {
+    return this.document(id);
   }
 
   /**
@@ -377,17 +396,22 @@ export class Collection {
     document: MutableDocument,
     concurrencyControl: ConcurrencyControl = null
   ): Promise<void> {
+    const blobString = document.blobsToJsonString();
+    const documentString = document.toJsonString();
     const ret = await this._engine.collection_Save({
       id: document.getId(),
-      document: document.toDictionary(),
+      document: documentString,
+      blobs: blobString,
       concurrencyControl: concurrencyControl,
       name: this.scope.database.getName(),
       scopeName: this.scope.name,
       collectionName: this.name,
     });
 
-    const id = ret._id;
-    document.setId(id);
+    document.setId(ret._id);
+    document.setRevisionID(ret._revId);
+    document.setSequence(ret._sequence);
+    document.setCollection(this);
   }
 
   async setDocumentExpiration(
@@ -403,7 +427,7 @@ export class Collection {
     });
   }
 
-  toJson(): any {
+  toJson(): CollectionJson {
     return {
       name: this.name,
       scopeName: this.scope.name,

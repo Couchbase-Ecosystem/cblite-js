@@ -96,6 +96,12 @@ export class Replicator {
     return token;
   }
 
+    /**
+   * Creates a new Replicator instance for database synchronization
+   * @param {ReplicatorConfiguration} config - The configuration for the replicator
+   * @returns {Promise<Replicator>} A Promise that resolves to a new Replicator instance
+   * @throws {Error} If the configuration is invalid or required parameters are missing
+   */
   static async create(config: ReplicatorConfiguration): Promise<Replicator> {
     if (config.getCollections().length === 0) {
       throw new Error('No collections specified in the configuration');

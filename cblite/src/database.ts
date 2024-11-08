@@ -16,27 +16,43 @@ import { Scope } from './scope';
 import { Query } from './query';
 
 export enum LogDomain {
+  // eslint-disable-next-line 
   ALL = 'ALL',
+  // eslint-disable-next-line 
   DATABASE = 'DATABASE',
+  // eslint-disable-next-line 
   NETWORK = 'NETWORK',
+  // eslint-disable-next-line 
   QUERY = 'QUERY',
+  // eslint-disable-next-line 
   REPLICATOR = 'REPLICATOR',
 }
 
 export enum LogLevel {
+  // eslint-disable-next-line 
   DEBUG = 0,
+  // eslint-disable-next-line 
   VERBOSE = 1,
+  // eslint-disable-next-line 
   INFO = 2,
+  // eslint-disable-next-line 
   WARNING = 3,
+  // eslint-disable-next-line 
   ERROR = 4,
+  // eslint-disable-next-line 
   NONE = 5,
 }
 
 export enum MaintenanceType {
+  // eslint-disable-next-line 
   COMPACT = 0,
+  // eslint-disable-next-line 
   REINDEX = 1,
+  // eslint-disable-next-line 
   INTEGRITY_CHECK = 2,
+  // eslint-disable-next-line 
   OPTIMIZE = 3,
+  // eslint-disable-next-line 
   FULL_OPTIMIZE = 4,
 }
 
@@ -49,7 +65,9 @@ export class Database {
   public log = new DatabaseLogging(this);
 
   constructor(
+    // eslint-disable-next-line 
     private _databaseName: string,
+    // eslint-disable-next-line 
     private _databaseConfig: DatabaseConfiguration = null
   ) {}
 
@@ -62,7 +80,7 @@ export class Database {
    *
    * @function
    */
-  open() {
+  open(): Promise<void> {
     const result = this._engine.database_Open({
       name: this._databaseName,
       config: this._databaseConfig,
@@ -317,14 +335,12 @@ export class Database {
    *
    * @function
    */
+  // eslint-disable-next-line 
   async collection(collectionName: string): Promise<Collection>;
-  // eslint-disable-next-line no-dupe-class-members
+  // eslint-disable-next-line 
   async collection(collectionName: string, scope: Scope): Promise<Collection>;
-  // eslint-disable-next-line no-dupe-class-members
-  async collection(
-    collectionName: string,
-    scopeName: string
-  ): Promise<Collection>;
+  // eslint-disable-next-line 
+  async collection(collectionName: string, scopeName: string): Promise<Collection>;
   // eslint-disable-next-line no-dupe-class-members
   async collection(
     collectionName: string,
@@ -361,11 +377,11 @@ export class Database {
    */
   // @ts-expect-error stupid overloading not working properly in IDE
   async collections(): Promise<Collection[]>;
-  // eslint-disable-next-line no-dupe-class-members
+  // eslint-disable-next-line
   async collections(scope: Scope): Promise<Collection[]>;
-  // eslint-disable-next-line no-dupe-class-members
+  // eslint-disable-next-line
   async collections(scope: string): Promise<Collection[]>;
-  // eslint-disable-next-line no-dupe-class-members
+  // eslint-disable-next-line
   async collections(
     scopeOrName: Scope | string | undefined
   ): Promise<Collection[]> {
@@ -399,18 +415,14 @@ export class Database {
    *
    * @function
    */
+   // eslint-disable-next-line
   async createCollection(collectionName: string): Promise<Collection>;
-  // eslint-disable-next-line no-dupe-class-members
-  async createCollection(
-    collectionName: string,
-    scope: Scope
+  // eslint-disable-next-line
+  async createCollection( collectionName: string, scope: Scope
   ): Promise<Collection>;
-  // eslint-disable-next-line no-dupe-class-members
-  async createCollection(
-    collectionName: string,
-    scopeName: string
-  ): Promise<Collection>;
-  // eslint-disable-next-line no-dupe-class-members
+  // eslint-disable-next-line 
+  async createCollection(collectionName: string, scopeName: string): Promise<Collection>;
+  // eslint-disable-next-line
   async createCollection(
     collectionName: string,
     scopeOrName?: Scope | string
@@ -444,10 +456,11 @@ export class Database {
    *
    * @function
    */
+  // eslint-disable-next-line 
   deleteCollection(collection: Collection): Promise<void>;
-  // eslint-disable-next-line no-dupe-class-members
+  // eslint-disable-next-line
   deleteCollection(collectionName: string, scopeName: string): Promise<void>;
-  // eslint-disable-next-line no-dupe-class-members
+  // eslint-disable-next-line 
   deleteCollection(
     collectionOrName: Collection | string,
     scopeName?: string
@@ -521,11 +534,11 @@ export class Database {
       docId: id,
     });
     if (docJson) {
-      // @ts-ignore
+      // @ts-expect-error - _data is used in getData()
       const data = docJson._data;
-      // @ts-ignore
+      // @ts-expect-error - _sequence is used in getSequence()
       const sequence = docJson._sequence;
-      // @ts-ignore
+      // @ts-expect-error _id exists in documents
       const retId = docJson._id;
       return Promise.resolve(new Document(retId, sequence, data));
     } else {
@@ -545,7 +558,8 @@ export class Database {
     const ret = await this._engine.database_Save({
       name: this._databaseName,
       id: document.getId(),
-      document: document.toDictionary(),
+      document: document.toJsonString(),
+      blobs: document.blobsToJsonString(),
       concurrencyControl: concurrencyControl,
     });
 
@@ -559,8 +573,6 @@ export class Database {
    * @function
    */
   createIndex(indexName: string, index: AbstractIndex): Promise<void> {
-    indexName;
-    index;
     return this._engine.database_CreateIndex({
       name: this._databaseName,
       indexName: indexName,

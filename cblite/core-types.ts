@@ -141,6 +141,8 @@ export interface CollectionDocumentExpirationArgs extends CollectionArgs {
 
 export interface CollectionDocumentSaveResult {
   _id: string;
+  _revId: string;
+  _sequence: number;
 }
 
 /**
@@ -178,6 +180,13 @@ export interface CollectionPurgeDocumentArgs extends CollectionArgs {
 export interface CollectionSaveArgs extends CollectionArgs {
   id: string;
   document: Dictionary;
+  concurrencyControl: ConcurrencyControl | null;
+}
+
+export interface CollectionSaveStringArgs extends CollectionArgs {
+  id: string;
+  document: string;
+  blobs: string;
   concurrencyControl: ConcurrencyControl | null;
 }
 
@@ -306,7 +315,8 @@ export interface DatabasePurgeDocumentArgs extends DatabaseArgs {
  */
 export interface DatabaseSaveArgs extends DatabaseArgs {
   id: string;
-  document: Dictionary;
+  document: string;
+  blobs: string;
   concurrencyControl: ConcurrencyControl | null;
 }
 
@@ -627,7 +637,7 @@ export interface ICoreEngine {
    * @function
    */
   collection_Save(
-    args: CollectionSaveArgs
+    args: CollectionSaveStringArgs
   ): Promise<CollectionDocumentSaveResult>;
 
   /**
