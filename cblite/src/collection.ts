@@ -236,6 +236,17 @@ export class Collection {
     }
   }
 
+ /**
+  * Get an existing document by document ID.
+  *
+  * Throws an error if the collection is deleted or the database is closed.
+  *
+  * @function
+  */
+  async getDocument(id: string): Promise<Document> {
+    return this.document(id);
+  }
+
   /**
      * Get the expiration date set to the document of the given id.
 

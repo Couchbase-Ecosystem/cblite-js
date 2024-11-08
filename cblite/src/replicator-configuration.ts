@@ -77,6 +77,7 @@ export class ReplicatorConfiguration {
    *
    * @function
    */
+    // eslint-disable-next-line
   addCollection(collection: Collection): void;
   // eslint-disable-next-line no-dupe-class-members
   addCollection(collection: Collection, config?: CollectionConfig): void {
@@ -491,7 +492,7 @@ export class ReplicatorConfiguration {
   }
 
   toJson(): any {
-    let config = {
+    const config = {
       acceptParentDomainCookies: this.acceptParentDomainCookies,
       acceptSelfSignedCerts: this.acceptOnlySelfSignedCerts,
       allowReplicationInBackground: this.allowReplicatingInBackground,
@@ -529,9 +530,9 @@ export class ReplicatorConfiguration {
     if (this.collections.size > 0) {
       if (this.checkCollectionsScopeAndDatabase()) {
         const colArray = [];
-        for (let [collections, collectionConfig] of this.collections) {
+        for (const [collections, collectionConfig] of this.collections) {
           const collectionsArray = [];
-          for (let collection of collections) {
+          for (const collection of collections) {
             collectionsArray.push({ collection: collection.toJson() });
           }
           if (collectionConfig !== undefined || collectionConfig !== null) {
@@ -559,8 +560,9 @@ export class ReplicatorConfiguration {
     let databaseName: string = null;
     let scopeName: string = null;
 
-    for (let [collections, _] of this.collections) {
-      for (let collection of collections) {
+    // eslint-disable-next-line
+    for (const [collections, _] of this.collections) {
+      for (const collection of collections) {
         if (databaseName === null && scopeName === null) {
           databaseName = collection.database.getName();
           scopeName = collection.scope.name;
