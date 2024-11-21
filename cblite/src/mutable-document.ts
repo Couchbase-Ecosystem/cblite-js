@@ -32,7 +32,11 @@ export class MutableDocument extends Document {
       super(null, null, null, null, {});
     } else if (arguments.length === 1) {
       // Just ID
+      if (id === null || id.length === 0) {
+        super(null, null, null, null, {});
+      } else {
       super(id, null, null, null, {});
+      }
     } else if (arguments.length === 2 && typeof sequenceNoOrData === 'object') {
       // ID and data
       super(id, null, null, null, sequenceNoOrData || {});
