@@ -529,18 +529,24 @@ export class Database {
    * @function
    */
   async getDocument(id: string): Promise<Document> {
-    const docJson = await this._engine.database_GetDocument({
-      name: this._databaseName,
+    const docJson = await this._engine.collection_GetDocument({
       docId: id,
+      name: this._databaseName,
+      scopeName: "_default",
+      collectionName: "_default",
     });
-    if (docJson) {
+    const collection = await this.defaultCollection();
+    // @ts-expect-error - _id is used in getId()
+    if (docJson && docJson._id) {
       // @ts-expect-error - _data is used in getData()
       const data = docJson._data;
       // @ts-expect-error - _sequence is used in getSequence()
       const sequence = docJson._sequence;
       // @ts-expect-error _id exists in documents
       const retId = docJson._id;
-      return Promise.resolve(new Document(retId, sequence, data));
+      // @ts-expect-error - _revId is used in getRevisionID()
+      const revisionID = docJson._revId;
+      return Promise.resolve(new Document(retId, sequence, revisionID, collection, data));
     } else {
       return Promise.resolve(null);
     }
@@ -555,16 +561,19 @@ export class Database {
     document: MutableDocument,
     concurrencyControl: ConcurrencyControl = null
   ): Promise<void> {
-    const ret = await this._engine.database_Save({
-      name: this._databaseName,
+    const ret = await this._engine.collection_Save({
       id: document.getId(),
       document: document.toJsonString(),
       blobs: document.blobsToJsonString(),
       concurrencyControl: concurrencyControl,
+      name: this._databaseName,
+      scopeName: "_default",
+      collectionName: "_default",
     });
 
-    const id = ret._id;
-    document.setId(id);
+    document.setId(ret._id);
+    document.setRevisionID(ret._revId);
+    document.setSequence(ret._sequence);
   }
 
   /**
