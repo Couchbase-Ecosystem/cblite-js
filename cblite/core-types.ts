@@ -504,6 +504,11 @@ export interface ScopesResult {
  * @interface
  */
 export interface ICoreEngine {
+  //********
+  //**debug 
+  //********
+  debugConsole: boolean;
+
   //************
   // Collections
   //************
