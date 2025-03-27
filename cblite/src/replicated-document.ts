@@ -46,8 +46,8 @@ export function isReplicatedDocumentRepresentation(obj: any): obj is ReplicatedD
     if (object.id === null) {
       throw 'document id cannot be null';
     }
-    if (object.error !== null) {
-      if (object.error.message === null) {
+    if (object.error) {
+      if (!object.error.message) {
         throw 'document error is incomplete';
       }
     }
