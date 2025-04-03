@@ -261,7 +261,7 @@ export class Collection {
       scopeName: this.scope.name,
       collectionName: this.name,
     });
-    if (date !== null && date.date !== null) {
+    if (!!date && date?.date) {
       return date.date;
     } else {
       return null;
