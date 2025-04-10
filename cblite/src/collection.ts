@@ -81,7 +81,7 @@ export class Collection {
     if (!this._didStartListener) {
       await this._engine.collection_AddChangeListener(
         {
-          name: this.scope.database.getName(),
+          name: this.scope.database.getUniqueName(),
           scopeName: this.scope.name,
           collectionName: this.name,
           changeListenerToken: token,
@@ -116,7 +116,7 @@ export class Collection {
     ) {
       await this._engine.collection_AddDocumentChangeListener(
         {
-          name: this.scope.database.getName(),
+          name: this.scope.database.getUniqueName(),
           scopeName: this.scope.name,
           collectionName: this.name,
           changeListenerToken: token,
@@ -144,7 +144,7 @@ export class Collection {
    */
   count(): Promise<{ count: number }> {
     return this._engine.collection_GetCount({
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
     });
@@ -157,7 +157,7 @@ export class Collection {
    */
   createIndex(indexName: string, index: AbstractIndex): Promise<void> {
     return this._engine.collection_CreateIndex({
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       indexName: indexName,
@@ -184,7 +184,7 @@ export class Collection {
   ): Promise<void> {
     const id = document.getId();
     return this._engine.collection_DeleteDocument({
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       docId: id,
@@ -199,7 +199,7 @@ export class Collection {
    */
   deleteIndex(indexName: string): Promise<void> {
     return this._engine.collection_DeleteIndex({
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       indexName: indexName,
@@ -216,7 +216,7 @@ export class Collection {
   async document(id: string): Promise<Document> {
     const docJson = await this._engine.collection_GetDocument({
       docId: id,
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
     });
@@ -236,13 +236,13 @@ export class Collection {
     }
   }
 
- /**
-  * Get an existing document by document ID.
-  *
-  * Throws an error if the collection is deleted or the database is closed.
-  *
-  * @function
-  */
+  /**
+   * Get an existing document by document ID.
+   *
+   * Throws an error if the collection is deleted or the database is closed.
+   *
+   * @function
+   */
   async getDocument(id: string): Promise<Document> {
     return this.document(id);
   }
@@ -257,7 +257,7 @@ export class Collection {
   async getDocumentExpiration(id: string): Promise<Date | null> {
     const date = await this._engine.collection_GetDocumentExpiration({
       docId: id,
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
     });
@@ -284,7 +284,7 @@ export class Collection {
    */
   async indexes(): Promise<string[]> {
     const indexes = await this._engine.collection_GetIndexes({
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
     });
@@ -325,7 +325,7 @@ export class Collection {
    */
   purge(document: Document) {
     return this._engine.collection_PurgeDocument({
-      name: this.database.getName(),
+      name: this.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       docId: document.getId(),
@@ -342,7 +342,7 @@ export class Collection {
    */
   purgeById(documentId: string) {
     return this._engine.collection_PurgeDocument({
-      name: this.database.getName(),
+      name: this.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       docId: documentId,
@@ -358,7 +358,7 @@ export class Collection {
    */
   async removeChangeListener(token: string) {
     await this._engine.collection_RemoveChangeListener({
-      name: this.database.getName(),
+      name: this.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       changeListenerToken: token,
@@ -373,7 +373,7 @@ export class Collection {
    */
   async removeDocumentChangeListener(token: string) {
     await this._engine.collection_RemoveDocumentChangeListener({
-      name: this.database.getName(),
+      name: this.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       changeListenerToken: token,
@@ -403,7 +403,7 @@ export class Collection {
       document: documentString,
       blobs: blobString,
       concurrencyControl: concurrencyControl,
-      name: this.scope.database.getName(),
+      name: this.scope.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
     });
@@ -420,7 +420,7 @@ export class Collection {
   ): Promise<void> {
     await this._engine.collection_SetDocumentExpiration({
       docId: id,
-      name: this.database.getName(),
+      name: this.database.getUniqueName(),
       scopeName: this.scope.name,
       collectionName: this.name,
       expiration: expiration,
@@ -431,7 +431,7 @@ export class Collection {
     return {
       name: this.name,
       scopeName: this.scope.name,
-      databaseName: this.database.getName(),
+      databaseName: this.database.getUniqueName(),
     };
   }
 

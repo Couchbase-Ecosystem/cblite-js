@@ -100,7 +100,7 @@ export class Document {
       key: key,
       collectionName: this.collection.name,
       scopeName: this.collection.scope.name,
-      name: this.collection.scope.database.getName(),
+      name: this.collection.scope.database.getUniqueName(),
     });
     return data.data;
   }
@@ -346,12 +346,12 @@ export class Document {
     return this.doc;
   }
 
-    /**
-   * Converts the document content to a JSON string representation
-   * @returns {string} A JSON string 
-   * 
-   * @function
-   */
+  /**
+ * Converts the document content to a JSON string representation
+ * @returns {string} A JSON string 
+ * 
+ * @function
+ */
   toJsonString(): string {
     return JSON.stringify(this.doc);
   }
