@@ -1,4 +1,6 @@
+import { ICoreEngine, ReplicationFilterRegisterArgs, ReplicationFilterUnregisterArgs } from "../core-types";
 import { Document } from "./document";
+import { EngineLocator } from "./engine-locator";
 import { ReplicatedDocumentFlag } from "./replicated-document";
 
 /**
@@ -14,8 +16,9 @@ export type ReplicationFilter = (document: Document, flags: ReplicatedDocumentFl
 export class CollectionConfig {
   private channels: string[];
   private documentIds: string[];
-  private pushFilter: string | null = null;
-  private pullFilter: string | null = null;
+  private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
+  private _pushFilterId: string | null = null;
+  private _pullFilterId: string | null = null;
 
  /**
   * The collection configuration that can be configured specifically for the replication.
@@ -49,75 +52,103 @@ export class CollectionConfig {
   setDocumentIDs(documentIds: string[]) {
     this.documentIds = documentIds;
   }
-  /**
-   * Sets a filter function for push replication. Only documents for which this function returns true will be pushed.
-   * The function gets serialized and executed on the native side using JavaScriptCore.
+
+ /**
+   * Sets a filter function for validating whether the documents can be pushed to the remote endpoint.
+   * Only documents for which the function returns true are replicated.
    * 
-   * @param {ReplicationFilter} filter - A function that takes a document and flags and returns a boolean
-   * @example
-   * const config = new CollectionConfig();
-   * config.setPushFilter((doc, flags) => {
-   *   return doc.type === 'user';
-   * });
+   * @param {ReplicationFilter|null} filter - Filter function to apply to push replication
    */
-  setPushFilter(filter: ReplicationFilter) {
-    this.pushFilter = filter.toString();
-  }
+ setPushFilter(filter: ReplicationFilter | null) {
 
-  /**
-   * Sets a filter function for pull replication. Only documents for which this function returns true will be pulled.
-   * The function gets serialized and executed on the native side using JavaScriptCore.
-   * 
-   * @param {ReplicationFilter} filter - A function that takes a document and flags and returns a boolean
-   * @example
-   * const config = new CollectionConfig();
-   * config.setPullFilter((doc, flags) => {
-   *   return doc.type === 'task' && !doc.isCompleted;
-   * });
-   */
-  setPullFilter(filter: ReplicationFilter) {
-    this.pullFilter = filter.toString();
-  }
-
-
-  /**
-   * Gets the channels configured for this collection.
-   */
-  getChannels(): string[] {
-    return this.channels;
-  }
-
-  /**
-   * Gets the document IDs configured for this collection.
-   */
-  getDocumentIDs(): string[] {
-    return this.documentIds;
-  }
-
-  /**
-   * Gets the push filter function as a string.
-   */
-  getPushFilter(): string | null {
-    return this.pushFilter;
-  }
-
-  /**
-   * Gets the pull filter function as a string.
-   */
-  getPullFilter(): string | null {
-    return this.pullFilter;
-  }
-
-  /**
-   * @internal
-   * Converts the configuration to a format that can be passed to the native layer
-   */
-  toJSON() {
-    return {
-      channels: this.channels,
-      documentIds: this.documentIds,
-      pushFilter: this.pushFilter,
-      pullFilter: this.pullFilter
+  // Unregister previous filter if exists
+  if (this._pushFilterId) {
+    const unregisterArgs: ReplicationFilterUnregisterArgs = {
+      filterId: this._pushFilterId
     };
+    this._engine.replication_UnregisterFilter(unregisterArgs)
+      .catch(err => console.error('Error unregistering push filter:', err));
+    this._pushFilterId = null;
   }
+  
+  // Register new filter if provided
+  if (filter) {
+    const filterId = `push_${this._engine.getUUID()}`;
+    const registerArgs: ReplicationFilterRegisterArgs = {
+      filterId: filterId,
+      filterType: 'push'
+    };
+    
+    this._engine.replication_RegisterFilter(registerArgs, (args) => {
+      const doc = args[0];
+      const flags = args[1];
+      return filter(doc, flags);
+    }).catch(err => console.error('Error registering push filter:', err));
+    
+    this._pushFilterId = filterId;
+  }
+}
+
+/**
+ * Get the push filter ID
+ * @returns {string|null} The push filter ID or null if not set
+ */
+getPushFilterId(): string | null {
+  return this._pushFilterId;
+}
+
+/**
+ * Sets a filter function for validating whether the documents can be pulled from the remote endpoint.
+ * Only documents for which the function returns true are replicated.
+ * 
+ * @param {ReplicationFilter|null} filter - Filter function to apply to pull replication
+ */
+setPullFilter(filter: ReplicationFilter | null) {
+  
+  // Unregister previous filter if exists
+  if (this._pullFilterId) {
+    const unregisterArgs: ReplicationFilterUnregisterArgs = {
+      filterId: this._pullFilterId
+    };
+    this._engine.replication_UnregisterFilter(unregisterArgs)
+      .catch(err => console.error('Error unregistering pull filter:', err));
+    this._pullFilterId = null;
+  }
+  
+  // Register new filter if provided
+  if (filter) {
+    const filterId = `pull_${this._engine.getUUID()}`;
+    const registerArgs: ReplicationFilterRegisterArgs = {
+      filterId: filterId,
+      filterType: 'pull'
+    };
+    
+    this._engine.replication_RegisterFilter(registerArgs, (doc, flags) => {
+      
+      return filter(doc, flags);
+    }).catch(err => console.error('Error registering pull filter:', err));
+    
+    this._pullFilterId = filterId;
+  }
+}
+
+/**
+ * Get the pull filter ID
+ * @returns {string|null} The pull filter ID or null if not set
+ */
+getPullFilterId(): string | null {
+  return this._pullFilterId;
+}
+
+/**
+ * Convert to JSON format for serialization to the native layer
+ */
+toJSON() {
+  return {
+    channels: this.channels,
+    documentIds: this.documentIds,
+    pushFilterId: this._pushFilterId,
+    pullFilterId: this._pullFilterId
+  };
+}
 }

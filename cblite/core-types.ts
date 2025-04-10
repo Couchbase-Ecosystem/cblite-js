@@ -14,6 +14,7 @@ import {
   Result,
   ResultSet,
   Scope,
+  ReplicationFilter,
 } from './src';
 
 /**
@@ -478,6 +479,14 @@ export interface ReplicatorDocumentPendingArgs
 export interface ReplicatorStatusChange {
   status: ReplicatorStatus;
 }
+export interface ReplicationFilterRegisterArgs {
+  filterId: string;
+  filterType: "push" | 'pull'
+}
+
+export interface ReplicationFilterUnregisterArgs {
+  filterId: string;
+}
 
 /**
  * Represents a Scope argument
@@ -800,6 +809,15 @@ export interface ICoreEngine {
 
   replicator_ResetCheckpoint(args: ReplicatorArgs): Promise<void>;
 
+  replication_RegisterFilter(
+    args: ReplicationFilterRegisterArgs,
+    callback: ReplicationFilter
+  ): Promise<void>;
+  
+  replication_UnregisterFilter(
+    args: ReplicationFilterUnregisterArgs
+  ): Promise<void>;
+  
   //*******
   // Scopes
   //*******
