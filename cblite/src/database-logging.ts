@@ -12,11 +12,11 @@ export interface DatabaseFileLoggingConfiguration {
 
 export class DatabaseLogging {
   // eslint-disable-next-line
-  constructor(private database: Database) {}
+  constructor(private database: Database) { }
 
   setFileConfig(config: DatabaseFileLoggingConfiguration): Promise<void> {
     return this.database.getEngine().database_SetFileLoggingConfig({
-      name: this.database.getName(),
+      name: this.database.getUniqueName(),
       config: config,
     });
   }

@@ -37,7 +37,7 @@ export class Query {
     if (!this._didStartQueryListener) {
       await this._engine.query_AddChangeListener(
         {
-          name: this._database.getName(),
+          name: this._database.getUniqueName(),
           query: this._queryString,
           parameters: this.parameters,
           changeListenerToken: token,
@@ -80,7 +80,7 @@ export class Query {
     }
 
     const queryResults = await this._database.getEngine().query_Execute({
-      name: this._database.getName(),
+      name: this._database.getUniqueName(),
       query: this._queryString,
       parameters: this.parameters.get(),
     });
@@ -104,7 +104,7 @@ export class Query {
       this.parameters = new Parameters();
     }
     const queryResults = await this._database.getEngine().query_Explain({
-      name: this._database.getName(),
+      name: this._database.getUniqueName(),
       query: this._queryString,
       parameters: this.parameters.get(),
     });
@@ -146,10 +146,10 @@ export class Query {
    * @function
    */
   async removeChangeListener(token: string) {
-   await this._database.getEngine().query_RemoveChangeListener({
-    changeListenerToken: token,
-    name: this._database.getName(),
-  });
+    await this._database.getEngine().query_RemoveChangeListener({
+      changeListenerToken: token,
+      name: this._database.getUniqueName(),
+    });
   }
 
   setDatabase(database: Database) {

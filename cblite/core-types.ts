@@ -444,7 +444,7 @@ export interface ReplicatorArgs {
 
 export interface ReplicatorCollectionArgs
   extends ReplicatorArgs,
-    CollectionArgs {}
+  CollectionArgs { }
 
 // implementation for Replicator Change Listener
 export type ReplicatorChangeListener = (change: ReplicatorStatusChange) => void;
@@ -471,7 +471,7 @@ export interface ReplicationChangeListenerArgs extends ReplicatorArgs {
 
 export interface ReplicatorDocumentPendingArgs
   extends ReplicatorArgs,
-    CollectionArgs {
+  CollectionArgs {
   documentId: string;
 }
 
@@ -704,7 +704,7 @@ export interface ICoreEngine {
 
   database_GetPath(args: DatabaseArgs): Promise<{ path: string }>;
 
-  database_Open(args: DatabaseOpenArgs): Promise<void>;
+  database_Open(args: DatabaseOpenArgs): Promise<{ databaseUniqueName: string }>;
 
   database_PerformMaintenance(
     args: DatabasePerformMaintenanceArgs

@@ -77,7 +77,7 @@ export class ReplicatorConfiguration {
    *
    * @function
    */
-    // eslint-disable-next-line
+  // eslint-disable-next-line
   addCollection(collection: Collection): void;
   // eslint-disable-next-line no-dupe-class-members
   addCollection(collection: Collection, config?: CollectionConfig): void {
@@ -564,10 +564,10 @@ export class ReplicatorConfiguration {
     for (const [collections, _] of this.collections) {
       for (const collection of collections) {
         if (databaseName === null && scopeName === null) {
-          databaseName = collection.database.getName();
+          databaseName = collection.database.getUniqueName();
           scopeName = collection.scope.name;
         } else if (
-          collection.database.getName() !== databaseName ||
+          collection.database.getUniqueName() !== databaseName ||
           collection.scope.name !== scopeName
         ) {
           return false;
