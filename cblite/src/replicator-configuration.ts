@@ -77,9 +77,7 @@ export class ReplicatorConfiguration {
    *
    * @function
    */
-    // eslint-disable-next-line
-  addCollection(collection: Collection): void;
-  // eslint-disable-next-line no-dupe-class-members
+
   addCollection(collection: Collection, config?: CollectionConfig): void {
     const cols: Collection[] = [];
     cols.push(collection);
@@ -538,7 +536,7 @@ export class ReplicatorConfiguration {
           if (collectionConfig !== undefined || collectionConfig !== null) {
             colArray.push({
               collections: collectionsArray,
-              config: collectionConfig,
+              config: collectionConfig.toJSON(),
             });
           } else {
             colArray.push({ collections: collectionsArray, config: '' });
