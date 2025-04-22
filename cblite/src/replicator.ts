@@ -75,7 +75,7 @@ export class Replicator {
   async addDocumentChangeListener(
     listener: ReplicatorDocumentChangeListener
   ): Promise<string> {
-    const token = this._engine.getUUID();
+    const token = this._engine.getUUID() + "_doc";
     this._documentChangeListener.set(token, listener);
     await this._engine.replicator_AddDocumentChangeListener(
       {
@@ -245,6 +245,9 @@ export class Replicator {
    * @function
    */
   async removeChangeListener(token: string): Promise<void> {
+    if (this._documentChangeListener.has(token)) {
+      this._documentChangeListener.delete(token);
+    }
     await this._engine.replicator_RemoveChangeListener({
       replicatorId: this._replicatorId,
       changeListenerToken: token,
