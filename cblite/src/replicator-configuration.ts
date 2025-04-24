@@ -562,10 +562,10 @@ export class ReplicatorConfiguration {
     for (const [collections, _] of this.collections) {
       for (const collection of collections) {
         if (databaseName === null && scopeName === null) {
-          databaseName = collection.database.getName();
+          databaseName = collection.database.getUniqueName();
           scopeName = collection.scope.name;
         } else if (
-          collection.database.getName() !== databaseName ||
+          collection.database.getUniqueName() !== databaseName ||
           collection.scope.name !== scopeName
         ) {
           return false;
