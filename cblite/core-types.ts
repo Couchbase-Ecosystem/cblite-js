@@ -62,6 +62,7 @@ export interface CollectionArgs {
  */
 export interface CollectionChange {
   documentIDs: string[];
+  collection: Collection;
 }
 
 export type CollectionChangeListener = (change: CollectionChange) => void;
