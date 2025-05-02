@@ -509,6 +509,7 @@ export interface ICoreEngine {
   //**debug 
   //********
   debugConsole: boolean;
+  platform: string;
 
   //************
   // Collections
