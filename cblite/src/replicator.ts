@@ -36,7 +36,7 @@ export class Replicator {
    */
   private constructor(replicatorId: string, config: ReplicatorConfiguration) {
     this._replicatorId = replicatorId;
-    this._config = config;
+    this._config = config.clone();
     this._documentChangeListener = new Map<
       string,
       ReplicatorDocumentChangeListener
@@ -109,7 +109,7 @@ export class Replicator {
     const engine = EngineLocator.getEngine(EngineLocator.key);
     const configJson = config.toJson();
     const ret = await engine.replicator_Create({ config: configJson });
-    const replicator = new Replicator(ret.replicatorId, config);
+    const replicator = new Replicator(ret.replicatorId, config.clone());
     return replicator;
   }
 

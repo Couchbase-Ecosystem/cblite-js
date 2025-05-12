@@ -489,6 +489,30 @@ export class ReplicatorConfiguration {
     this.replicatorType = replicatorType;
   }
 
+  public clone(): ReplicatorConfiguration {
+    const clonedConfig = new ReplicatorConfiguration(this.target);
+
+    // Copy primitive and object properties
+    clonedConfig.setContinuous(this.getContinuous());
+    clonedConfig.setHeaders({ ...this.getHeaders() }); // Deep copy headers
+    clonedConfig.setAuthenticator(this.getAuthenticator());
+    clonedConfig.setPinnedServerCertificate(this.getPinnedServerCertificate());
+    clonedConfig.setAllowReplicatingInBackground(this.getAllowReplicatingInBackground());
+    clonedConfig.setAutoPurgeEnabled(this.getAutoPurgeEnabled());
+    clonedConfig.setAcceptParentDomainCookies(this.getAcceptParentDomainCookies());
+    clonedConfig.setMaxAttempts(this.getMaxAttempts());
+    clonedConfig.setMaxAttemptWaitTime(this.getMaxAttemptWaitTime());
+    clonedConfig.setHeartbeat(this.getHeartbeat());
+    clonedConfig.setReplicatorType(this.getReplicatorType());
+
+    // Clone collections
+    for (const [collections, config] of this.collections) {
+      clonedConfig.addCollections([...collections], config);
+    }
+
+    return clonedConfig;
+  }
+
   toJson(): any {
     const config = {
       acceptParentDomainCookies: this.acceptParentDomainCookies,
