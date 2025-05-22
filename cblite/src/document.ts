@@ -66,7 +66,8 @@ export class Document {
   }
 
   /**
-   * Returns metadata associated with the Blob.  Use getBlobContent() to get the Blob’s data.
+   * Returns the Blob associated with the given key, including its content.
+   * Returns null if the property doesn’t exist, or its value is not a blob.
    * Throws an error if the collection is deleted or the database is closed.
    *
    * @function
