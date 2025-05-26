@@ -66,16 +66,18 @@ export class Document {
   }
 
   /**
-   * Returns metadata associated with the Blob.  Use getBlobContent() to get the Blob’s data.
+   * Returns the Blob associated with the given key, including its content.
+   * Returns null if the property doesn’t exist, or its value is not a blob.
    * Throws an error if the collection is deleted or the database is closed.
    *
    * @function
    */
-  getBlob(key: string): Blob | null {
+ async getBlob(key: string): Promise<Blob | null> {
     if (key in this.doc) {
       const data = this._get(key);
       if (data && typeof data === 'object' && 'content_type' in data) {
-        const b = new Blob(data.content_type, data.raw);
+        const blobContent = await this.getBlobContent(key);
+        const b = new Blob(data.content_type, blobContent);
         b.digest = data.digest;
         b.length = data.length;
         return b;
@@ -85,8 +87,6 @@ export class Document {
   }
 
   /**
-   * @deprecated  - use the Blob API getBytes() function instead
-   * 
    * Get a property’s value as a ArrayBuffer. Returns null if the property doesn’t exist,
    * or its value is not a blob.
    *
@@ -247,16 +247,16 @@ export class Document {
    * @function
    */
   getInt(key: string): number | null {
-    if (key in this.doc) {
-      const value = this.doc[key];
-      if (typeof value === 'number') {
-        return Math.floor(value);
+      if (key in this.doc) {
+        const value = this.doc[key];
+        if (typeof value === 'number') {
+          return Math.floor(value);
+        }
+        if (typeof value === 'boolean') {
+          return value ? 1 : 0;
+        }
       }
-      if (typeof value === 'boolean') {
-        return value ? 1 : 0;
-      }
-    }
-    return 0;
+      return 0;
   }
 
   /**
