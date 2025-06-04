@@ -14,6 +14,7 @@ import {
   Result,
   ResultSet,
   Scope,
+  CollectionJson,
 } from './src';
 
 /**
@@ -500,6 +501,46 @@ export interface ScopesResult {
 }
 
 /**
+ * Represents arguments for creating a URL Endpoint Listener.
+ *
+ * @interface
+ * @property {CollectionArgs[]} collections - The list of collections to include in the listener.
+ * @property {number} port - The port to listen on.
+ * @property {string} [networkInterface] - Optional network interface to bind to.
+ * @property {boolean} [disableTLS] - Optional flag to disable TLS.
+ * @property {boolean} [enableDeltaSync] - Optional flag to enable delta sync.
+ */
+export interface URLEndpointListenerCreateArgs {
+  collections: CollectionJson[];
+  port: number;
+  networkInterface?: string; 
+  disableTLS?: boolean; 
+  enableDeltaSync?: boolean; 
+}
+
+/**
+ * Represents arguments for starting or stopping a URL Endpoint Listener.
+ *
+ * @interface
+ * @property {string} listenerId - The unique ID of the listener.
+ */
+export interface URLEndpointListenerArgs {
+  listenerId: string;
+}
+
+/**
+ * Represents the status of a URL Endpoint Listener.
+ *
+ * @interface
+ * @property {number} connectionsCount - The total number of connections.
+ * @property {number} activeConnectionCount - The number of active connections.
+ */
+export interface URLEndpointListenerStatus {
+  connectionsCount: number;
+  activeConnectionCount: number;
+}
+
+/**
  * Represents engine for the core functionality of the Couchbase Lite Plugin
  *
  * @interface
@@ -812,4 +853,45 @@ export interface ICoreEngine {
   scope_GetScopes(args: DatabaseArgs): Promise<ScopesResult>;
 
   getUUID(): string;
+  
+
+  //********
+  // URL Endpoint Listener
+  //********
+
+  /**
+   * Creates a URL Endpoint Listener.
+   *
+   * @param args - The arguments for creating the listener.
+   * @returns A promise that resolves with the listener ID.
+   */
+  URLEndpointListener_createListener(args: URLEndpointListenerCreateArgs): Promise<{ listenerId: string }>;
+
+  /**
+   * Starts a URL Endpoint Listener.
+   *
+   * @param args - The arguments for starting the listener.
+   * @returns A promise that resolves when the listener is started.
+   */
+  URLEndpointListener_startListener(args: URLEndpointListenerArgs): Promise<void>;
+
+  /**
+   * Stops a URL Endpoint Listener.
+   *
+   * @param args - The arguments for stopping the listener.
+   * @returns A promise that resolves when the listener is stopped.
+   */
+  URLEndpointListener_stopListener(args: URLEndpointListenerArgs): Promise<void>;
+
+  /**
+   * Gets the status of a URL Endpoint Listener.
+   *
+   * @param args - The arguments for getting the listener status.
+   * @returns A promise that resolves with the listener status.
+   */
+  URLEndpointListener_getStatus(
+    args: URLEndpointListenerArgs
+  ): Promise<URLEndpointListenerStatus>;
 }
+
+
