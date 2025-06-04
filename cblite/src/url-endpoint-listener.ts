@@ -43,7 +43,6 @@ export class URLEndpointListener {
     this._networkInterface = args.networkInterface;
     this._disableTLS = args.disableTLS;
     this._enableDeltaSync = args.enableDeltaSync;
-    this._engine = EngineLocator.getEngine(EngineLocator.key);
     this._listenerId = listenerId;
   }
 
@@ -66,7 +65,7 @@ export class URLEndpointListener {
   }
 
   /**
-   * Stops the listener and clears the listener ID.
+   * Stops the listener. 
    */
   async stop(): Promise<void> {
     await this._engine.URLEndpointListener_stopListener({ listenerId: this._listenerId });

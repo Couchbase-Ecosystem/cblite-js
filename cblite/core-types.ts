@@ -504,7 +504,7 @@ export interface ScopesResult {
  * Represents arguments for creating a URL Endpoint Listener.
  *
  * @interface
- * @property {CollectionArgs[]} collections - The list of collections to include in the listener.
+ * @property {CollectionJson[]} collections - The list of collections to include in the listener.
  * @property {number} port - The port to listen on.
  * @property {string} [networkInterface] - Optional network interface to bind to.
  * @property {boolean} [disableTLS] - Optional flag to disable TLS.
