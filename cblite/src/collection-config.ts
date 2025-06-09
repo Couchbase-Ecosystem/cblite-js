@@ -6,7 +6,6 @@ export class CollectionConfig {
   private channels: string[];
   private documentIds: string[];
   private pushFilter?: string;
-  private pullFilter?: string;
 
  /**
   * The collection configuration that can be configured specifically for the replication.
@@ -59,8 +58,8 @@ export class CollectionConfig {
   /**
    * Get the pull filter function string
    */
-  getPullFilter(): string | undefined {
-    return this.pullFilter;
+  getPushFilter(): string | undefined {
+    return this.pushFilter;
   }
 
 }
