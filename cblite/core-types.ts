@@ -500,6 +500,10 @@ export interface ScopesResult {
   scopes: Scope[];
 }
 
+export interface ListenerAuthenticatorConfig {
+  type: 'basic',
+  data: {[key:string]: any}
+}
 /**
  * Represents arguments for creating a URL Endpoint Listener.
  *
@@ -509,6 +513,7 @@ export interface ScopesResult {
  * @property {string} [networkInterface] - Optional network interface to bind to.
  * @property {boolean} [disableTLS] - Optional flag to disable TLS.
  * @property {boolean} [enableDeltaSync] - Optional flag to enable delta sync.
+ * @property {ListenerAuthenticatorConfig} [authenticatorConfig] - Optional authentication configuration for the listener.
  */
 export interface URLEndpointListenerCreateArgs {
   collections: CollectionJson[];
@@ -516,6 +521,7 @@ export interface URLEndpointListenerCreateArgs {
   networkInterface?: string; 
   disableTLS?: boolean; 
   enableDeltaSync?: boolean; 
+  authenticatorConfig?: ListenerAuthenticatorConfig;
 }
 
 /**

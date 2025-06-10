@@ -1,4 +1,4 @@
-import { ICoreEngine, URLEndpointListenerCreateArgs, URLEndpointListenerStatus } from '../core-types';
+import { ICoreEngine, ListenerAuthenticatorConfig, URLEndpointListenerCreateArgs, URLEndpointListenerStatus } from '../core-types';
 import { CollectionJson } from './collection';
 import { EngineLocator } from './engine-locator';
 
@@ -29,6 +29,7 @@ export class URLEndpointListener {
   private readonly _networkInterface?: string;
   private readonly _disableTLS?: boolean;
   private readonly _enableDeltaSync?: boolean;
+  private readonly _authenticatorConfig?: ListenerAuthenticatorConfig;
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
 
   /**
@@ -44,6 +45,7 @@ export class URLEndpointListener {
     this._disableTLS = args.disableTLS;
     this._enableDeltaSync = args.enableDeltaSync;
     this._listenerId = listenerId;
+    this._authenticatorConfig = args.authenticatorConfig;
   }
 
   /**
