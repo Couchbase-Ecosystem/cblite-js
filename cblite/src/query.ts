@@ -10,7 +10,7 @@ import { Parameters } from './parameters';
  */
 export class Query {
   private readonly _queryString: string;
-  parameters: Parameters;
+  parameters: Parameters = new Parameters();
   private _database: Database;
 
   //used for engine calls
@@ -34,12 +34,13 @@ export class Query {
   async addChangeListener(listener: QueryChangeListener): Promise<string> {
     this._changeListener = listener;
     const token = this._engine.getUUID();
+
     if (!this._didStartQueryListener) {
       await this._engine.query_AddChangeListener(
         {
           name: this._database.getUniqueName(),
           query: this._queryString,
-          parameters: this.parameters,
+          parameters: this.parameters.get(),
           changeListenerToken: token,
         },
         (data, err) => {
@@ -75,9 +76,6 @@ export class Query {
    * @function
    */
   async execute(): Promise<ResultSet> {
-    if (this.parameters === undefined) {
-      this.parameters = new Parameters();
-    }
 
     const queryResults = await this._database.getEngine().query_Execute({
       name: this._database.getUniqueName(),
@@ -100,9 +98,6 @@ export class Query {
    * @function
    */
   async explain(): Promise<string> {
-    if (this.parameters === undefined) {
-      this.parameters = new Parameters();
-    }
     const queryResults = await this._database.getEngine().query_Explain({
       name: this._database.getUniqueName(),
       query: this._queryString,
