@@ -12,7 +12,7 @@ import {
   ICoreEngine,
 } from '../core-types';
 
-interface CollectionJson {
+export interface CollectionJson {
   name: string;
   scopeName: string;
   databaseName: string;
