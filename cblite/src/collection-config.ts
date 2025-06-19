@@ -6,6 +6,7 @@ export class CollectionConfig {
   private channels: string[];
   private documentIds: string[];
   private pushFilter?: string;
+  private pullFilter?: string;
 
  /**
   * The collection configuration that can be configured specifically for the replication.
@@ -47,7 +48,7 @@ export class CollectionConfig {
    * @example
    * const config = new CollectionConfig();
    * config.setPushFilter((doc, flags) => {
-   *   return doc["type"] === 'user' && !flags["deleted"];
+   *   return doc["type"] === 'user' && !flags.includes(ReplicatedDocumentFlag.DELETED);
    * });
    */
   setPushFilter(filter: ReplicationFilter) {
@@ -55,11 +56,33 @@ export class CollectionConfig {
     this.pushFilter = filter.toString();
   }
 
+   /**
+   * Set a filter function for pull replication. Only documents for which the function returns true will be pulled.
+   * Inside filter body document and flag object methods can't be used.
+   * @param {ReplicationFilter} filter - Function that returns true to replicate the document
+   * @example
+   * const config = new CollectionConfig();
+   * config.setPullFilter((doc, flags) => {
+   *    return doc["type"] === 'user' && !flags.includes(ReplicatedDocumentFlag.DELETED);
+   * });
+   */
+  setPullFilter(filter: ReplicationFilter) {
+    // Convert function to string for bridge transport
+    this.pullFilter = filter.toString();
+  }
+
   /**
    * Get the pull filter function string
    */
   getPushFilter(): string | undefined {
     return this.pushFilter;
+  }
+
+  /**
+   * Get the pull filter function string
+   */
+  getPullFilter(): string | undefined {
+    return this.pullFilter;
   }
 
 }
