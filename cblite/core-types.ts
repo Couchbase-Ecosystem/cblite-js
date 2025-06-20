@@ -504,6 +504,24 @@ export interface ListenerAuthenticatorConfig {
   type: 'basic',
   data: {[key:string]: any}
 }
+
+/**
+ * Represents configuration for a TLS identity to be used by the listener.
+ *
+ * @interface
+ * @property {Record<string, string>} attributes - Attributes for the identity. Must include 'certAttrCommonName'.
+ * @property {string} [expiration] - Optional expiration date as ISO8601 string
+ * @property {string} [label] - Optional label for the identity
+ */
+export interface TlsIdentityConfig {
+  attributes: {
+    certAttrCommonName: string;  // Common Name is required
+    [key: string]: string;  // Allow other attributes
+  };
+  expiration?: string; // ISO8601 date string
+  label?: string;
+}
+
 /**
  * Represents arguments for creating a URL Endpoint Listener.
  *
@@ -514,6 +532,7 @@ export interface ListenerAuthenticatorConfig {
  * @property {boolean} [disableTLS] - Optional flag to disable TLS.
  * @property {boolean} [enableDeltaSync] - Optional flag to enable delta sync.
  * @property {ListenerAuthenticatorConfig} [authenticatorConfig] - Optional authentication configuration for the listener.
+ * @property {TlsIdentityConfig} [tlsIdentityConfig] - Optional TLS identity configuration for the listener.
  */
 export interface URLEndpointListenerCreateArgs {
   collections: CollectionJson[];
@@ -522,6 +541,7 @@ export interface URLEndpointListenerCreateArgs {
   disableTLS?: boolean; 
   enableDeltaSync?: boolean; 
   authenticatorConfig?: ListenerAuthenticatorConfig;
+  tlsIdentityConfig?: TlsIdentityConfig;
 }
 
 /**
@@ -587,7 +607,7 @@ export interface ICoreEngine {
 
   /**
    * Delete a document from the collection. The default concurrency control, lastWriteWins,
-   * will be used when there is conflict during delete. If the document doesn’t exist in the
+   * will be used when there is conflict during delete. If the document doesn't exist in the
    * collection, an error will be thrown.
    *
    * When deleting a document that already belongs to a collection, the collection instance of
@@ -660,7 +680,7 @@ export interface ICoreEngine {
   collection_GetIndexes(args: CollectionArgs): Promise<{ indexes: string[] }>;
 
   /**
-   * Purge a document by id from the collection. If the document doesn’t exist in the
+   * Purge a document by id from the collection. If the document doesn't exist in the
    * collection, an error will be thrown.
    *
    * Throws an error if the collection is deleted or the database is closed.
@@ -737,7 +757,7 @@ export interface ICoreEngine {
   database_Exists(args: DatabaseExistsArgs): Promise<{ exists: boolean }>;
 
   /**
-   * @deprecated This will be removed in future versions. Use collection_GetCount instead.
+   * @deprecated This will be removed in future versions. Use Collection_GetCount instead.
    */
   database_GetCount(args: DatabaseArgs): Promise<{ count: number }>;
 
