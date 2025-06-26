@@ -1,11 +1,17 @@
-import { ICoreEngine, ListenerAuthenticatorConfig, URLEndpointListenerCreateArgs, URLEndpointListenerStatus } from '../core-types';
+import {
+  ICoreEngine,
+  ListenerAuthenticatorConfig,
+  URLEndpointListenerCreateArgs,
+  URLEndpointListenerStatus,
+  URLEndpointListenerTLSIdentityArgs,
+} from '../core-types';
 import { CollectionJson } from './collection';
 import { EngineLocator } from './engine-locator';
 
 /**
  * URLEndpointListener manages the lifecycle of a Couchbase Lite URL Endpoint Listener.
  * Use the static `create` method to instantiate and configure a listener.
- * 
+ *
  * Example usage:
  * ```typescript
  * const listener = await URLEndpointListener.create({
@@ -17,7 +23,7 @@ import { EngineLocator } from './engine-locator';
  * });
  * await listener.start();
  * ```
- * 
+ *
  * - If `disableTLS` is not provided, TLS is enabled by default.
  * - If `enableDeltaSync` is not provided, delta sync is disabled by default.
  * - Use `listener.stop()` to stop the listener.
@@ -35,10 +41,7 @@ export class URLEndpointListener {
   /**
    * Private constructor. Use the static `create` method to instantiate.
    */
-  private constructor(
-    args: URLEndpointListenerCreateArgs,
-    listenerId: string
-  ) {
+  private constructor(args: URLEndpointListenerCreateArgs, listenerId: string) {
     this._collections = args.collections;
     this._port = args.port;
     this._networkInterface = args.networkInterface;
@@ -67,7 +70,7 @@ export class URLEndpointListener {
   }
 
   /**
-   * Stops the listener. 
+   * Stops the listener.
    */
   async stop(): Promise<void> {
     await this._engine.URLEndpointListener_stopListener({ listenerId: this._listenerId });
@@ -114,12 +117,20 @@ export class URLEndpointListener {
   getEnableDeltaSync(): boolean {
     return !!this._enableDeltaSync;
   }
-  
+
   /**
    * Gets the current status of the listener from the native engine.
    * @returns A promise that resolves to the listener status.
    */
   async getStatus(): Promise<URLEndpointListenerStatus> {
     return await this._engine.URLEndpointListener_getStatus({ listenerId: this._listenerId });
+  }
+
+  /**
+   * Deletes the listener identity from the native engine.
+   * @param args The arguments for deleting the listener identity.
+   */
+  static async deleteIdentity(args: URLEndpointListenerTLSIdentityArgs): Promise<void> {
+    return await EngineLocator.getEngine(EngineLocator.key).URLEndpointListener_deleteIdentity(args);
   }
 }
