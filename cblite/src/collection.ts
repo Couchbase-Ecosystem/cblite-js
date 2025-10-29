@@ -165,15 +165,20 @@ export class Collection {
   private _documentChangeListener: Map<string, DocumentChangeListener>;
   
   /**
-   * _didStartDocumentListener: Tracks which document listeners have been started.
-   * Key: documentId
-   * Value: boolean indicating if listener is active
+   * _docListenerTokens: Maps listener tokens to document IDs for cleanup.
+   * Key: token (returned from addDocumentChangeListener)
+   * Value: documentId
    * 
-   * ⚠️ WARNING - POTENTIAL BUG: Declared as Map but used with bracket notation in code!
-   * Line 435 uses: this._didStartDocumentListener[documentId] = true
-   * This treats it as plain object, not Map. Should use .set() method instead.
+   * This enables proper cleanup when removeDocumentChangeListener is called,
+   * as we need to know which documentId to remove from _documentChangeListener.
+   * 
+   * Example:
+   * Map {
+   *   'uuid-abc-123' => 'user-123',
+   *   'uuid-def-456' => 'order-456'
+   * }
    */
-  private _didStartDocumentListener: Map<string, boolean>;
+  private _docListenerTokens: Map<string, string>;
 
   /**
    * CONSTRUCTOR
@@ -202,7 +207,7 @@ export class Collection {
     this.scope = scope ?? new Scope('', database);
     this.database = database;
     this._documentChangeListener = new Map<string, DocumentChangeListener>();
-    this._didStartDocumentListener = new Map<string, boolean>();
+    this._docListenerTokens = new Map<string, string>();
   }
 
   /**
@@ -430,33 +435,33 @@ export class Collection {
     documentId: string,
     listener: DocumentChangeListener
   ): Promise<string> {
-    const token = this.uuid();
-    if (
-      !this._didStartDocumentListener.has(documentId) &&
-      !this._documentChangeListener[documentId]
-    ) {
-      await this._engine.collection_AddDocumentChangeListener(
-        {
-          name: this.scope.database.getUniqueName(),
-          scopeName: this.scope.name,
-          collectionName: this.name,
-          changeListenerToken: token,
-          documentId: documentId,
-        },
-        (data, err) => {
-          if (err) {
-            throw err;
-          }
-          this.notifyDocumentChangeListeners(data);
-        }
-      );
-      this._documentChangeListener.set(documentId, listener);
-      this._didStartDocumentListener[documentId] = true;
-      return token;
-    } else {
+    if (this._documentChangeListener.has(documentId)) {
       throw new Error(`Listener for document ${documentId} already started`);
     }
+
+    const token = this.uuid();
+    await this._engine.collection_AddDocumentChangeListener(
+      {
+        name: this.scope.database.getUniqueName(),
+        scopeName: this.scope.name,
+        collectionName: this.name,
+        changeListenerToken: token,
+        documentId: documentId,
+      },
+      (data, err) => {
+        if (err) {
+          throw err;
+        }
+        this.notifyDocumentChangeListeners(data);
+      }
+    );
+
+    this._documentChangeListener.set(documentId, listener);
+    this._docListenerTokens.set(token, documentId);
+    
+    return token;
   }
+  
 
   /**
    * ==================
@@ -1170,6 +1175,12 @@ export class Collection {
       collectionName: this.name,
       changeListenerToken: token,
     });
+
+    const documentId = this._docListenerTokens.get(token);
+    if (documentId) {
+      this._documentChangeListener.delete(documentId);
+      this._docListenerTokens.delete(token);
+    }
   }
 
   /**
