@@ -677,6 +677,18 @@ export interface ICoreEngine {
    */
   collection_GetCount(args: CollectionArgs): Promise<{ count: number }>;
 
+
+  /**
+ * Get the fully qualified name of the collection.
+ *
+ * Returns the collection's full name in the format "scopeName.collectionName".
+ *
+ * Throws an error if the collection is deleted or the database is closed.
+ *
+ * @function
+ */
+  collection_GetFullName(args: CollectionArgs): Promise<{ fullName: string }>;
+
   collection_GetDefault(args: DatabaseArgs): Promise<Collection>;
 
   /**
