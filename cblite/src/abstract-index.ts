@@ -8,6 +8,8 @@ export enum IndexType {
   FullText = 1,
   // eslint-disable-next-line
   Geo = 2,
+  // eslint-disable-next-line
+  Vector = 3,
 }
 
 export abstract class AbstractIndex implements Index {

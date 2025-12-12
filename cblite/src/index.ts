@@ -41,3 +41,4 @@ export * from './url-endpoint';
 export * from './value-index';
 export * from './variable-expression';
 export * from './url-endpoint-listener';
+export * from './vector-index';
