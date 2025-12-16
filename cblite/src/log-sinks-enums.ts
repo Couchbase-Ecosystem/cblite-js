@@ -45,14 +45,14 @@ export enum LogLevel {
     /** Listener domain */
     LISTENER = "LISTENER",
     
-    /** Peer Discovery domain */
-    PEER_DISCOVERY = "PEER_DISCOVERY",
+    // /** Peer Discovery domain */
+    // PEER_DISCOVERY = "PEER_DISCOVERY",
     
-    /** mDNS specific logs used for DNS-SD peer discovery */
-    MDNS = "MDNS",
+    // /** mDNS specific logs used for DNS-SD peer discovery */
+    // MDNS = "MDNS",
     
-    /** Multipeer Replication domain */
-    MULTIPEER = "MULTIPEER",
+    // /** Multipeer Replication domain */
+    // MULTIPEER = "MULTIPEER",
     
     /** All domains (convenience value) */
     ALL = "ALL"
