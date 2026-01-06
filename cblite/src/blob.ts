@@ -27,7 +27,7 @@ export class Blob {
     data: Uint8Array | ArrayBuffer
   ) {
     this.contentType = contentType;
-    this.bytes = data instanceof Uint8Array ? data.buffer : data;
+    this.bytes = data instanceof Uint8Array ? data.buffer as ArrayBuffer : data;
   }
 
    /**
