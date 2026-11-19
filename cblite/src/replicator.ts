@@ -14,6 +14,7 @@ import {
 } from './document-replication';
 import { Collection } from './collection';
 import { ListenerToken } from './listener-token';
+import { ChangeListenerSlot } from './util/change-listener-slot';
 
 export class Replicator {
   private _replicatorId: string = undefined;
@@ -22,15 +23,14 @@ export class Replicator {
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
 
   //replication status change listener support
-  private _statusChangeListener: ReplicatorChangeListener;
-  private _didStartStatusChangeListener: boolean = false;
+  private _statusChangeListener =
+    new ChangeListenerSlot<ReplicatorChangeListener>();
 
   private _documentChangeListener: Map<
     string,
     ReplicatorDocumentChangeListener
   >;
 
-  private _replicatorListenerTokensByUuid: Map<string, ListenerToken> = new Map();
   private _replicatorDocListenerTokensByUuid: Map<string, ListenerToken> = new Map();
 
   /**
@@ -54,40 +54,28 @@ export class Replicator {
    *
    */
   async addChangeListener(listener: ReplicatorChangeListener): Promise<ListenerToken> {
-    this._statusChangeListener = listener;
     const token = this._engine.getUUID();
-    if (!this._didStartStatusChangeListener) {
-      await this._engine.replicator_AddChangeListener(
-        {
-          replicatorId: this._replicatorId,
-          changeListenerToken: token,
-        },
-        (data, err) => {
-          if (err) {
-            throw err;
+    return this._statusChangeListener.claim(token, listener, {
+      start: () =>
+        this._engine.replicator_AddChangeListener(
+          {
+            replicatorId: this._replicatorId,
+            changeListenerToken: token,
+          },
+          (data, err) => {
+            if (err) {
+              throw err;
+            }
+            this.notifyStatusChange(data);
           }
-          this.notifyStatusChange(data);
-        }
-      );
-      this._didStartStatusChangeListener = true;
-
-      // Create ListenerToken wrapper
-      const cblListenerToken = new ListenerToken(token, async () => {
-        // calling the remove listener native method
-        await this._engine.listenerToken_Remove({
-          changeListenerToken: token
-        });
-        
-        this._replicatorListenerTokensByUuid.delete(token);
-        this._didStartStatusChangeListener = false;
-      });
-
-      this._replicatorListenerTokensByUuid.set(token, cblListenerToken);
-
-      return cblListenerToken;
-    } else {
-      throw new Error('Listener already started');
-    }
+        ),
+      // calling the remove listener native method
+      stop: () =>
+        this._engine.listenerToken_Remove({
+          changeListenerToken: token,
+        }),
+      alreadyStartedMessage: 'Listener already started',
+    });
   }
 
   async addDocumentChangeListener(
@@ -277,7 +265,7 @@ export class Replicator {
       );
     }
     const statusChange = { status: status };
-    this._statusChangeListener(statusChange);
+    this._statusChangeListener.notify(statusChange);
   }
 
   /**
@@ -290,10 +278,8 @@ export class Replicator {
       ? token 
       : token.getUuidToken();
 
-    // Check if it's a status change listener
-    const statusListenerToken = this._replicatorListenerTokensByUuid.get(uuidToken);
-    if (statusListenerToken) {
-      await statusListenerToken.remove();
+    // Check if it's the status change listener
+    if (await this._statusChangeListener.remove(uuidToken)) {
       return;
     }
 
@@ -309,14 +295,9 @@ export class Replicator {
       changeListenerToken: uuidToken
     });
     
-    // Cleanup - because we are using a unified map, we need to check if it's a document listener or a status listener
-    if (this._documentChangeListener.has(uuidToken)) {
-      // It's a document listener, so delete it from the map
-      this._documentChangeListener.delete(uuidToken);
-    } else {
-      // It's a status listener so we need to reset the flag
-      this._didStartStatusChangeListener = false;
-    }
+    // Cleanup: drop a stale document listener callback, if any. Unknown
+    // tokens never free the status listener slot.
+    this._documentChangeListener.delete(uuidToken);
   }
 
   /**

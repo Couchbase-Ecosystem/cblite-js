@@ -1,6 +1,7 @@
 #project files
 *.swp
 cblite/dist/
+cblite/dist-test/
 cblite/node_modules
 cblite-tests/node_modules
 cblite-tests/dist

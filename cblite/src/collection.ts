@@ -89,6 +89,7 @@ import {
   ICoreEngine,
 } from '../core-types';
 import { ListenerToken } from './listener-token';
+import { ChangeListenerSlot } from './util/change-listener-slot';
 
 
 /**
@@ -144,14 +145,11 @@ export class Collection {
    * }
    * 
    * NOTE: There is NO database property! You can access database via collection.database
+   *
+   * Only one collection change listener is supported per collection instance;
+   * removing it (token.remove() or removeChangeListener) frees the slot.
    */
-  private _changeListener: CollectionChangeListener;
-  
-  /**
-   * _didStartListener: Flag to prevent multiple collection change listeners.
-   * Currently, only one collection change listener is supported per collection instance.
-   */
-  private _didStartListener = false;
+  private _changeListener = new ChangeListenerSlot<CollectionChangeListener>();
 
   /**
    * _documentChangeListener: Map storing listeners for individual documents.
@@ -184,7 +182,6 @@ export class Collection {
 
 
   // 
-  private _cblListenerTokensByUuid: Map<string, ListenerToken> = new Map();
   private _cblDocumentListenerTokensByUuid: Map<string, ListenerToken> = new Map();
 
 
@@ -384,45 +381,31 @@ export class Collection {
    * @function
    */
   async addChangeListener(listener: CollectionChangeListener): Promise<ListenerToken> {
-    this._changeListener = listener;
     const uuidToken: string = this.uuid();
 
-    if (!this._didStartListener) {
-      await this._engine.collection_AddChangeListener(
-        {
-          name: this.scope.database.getUniqueName(),
-          scopeName: this.scope.name,
-          collectionName: this.name,
-          changeListenerToken: uuidToken,
-        },
-        (data, err) => {
-          if (err) {
-            throw err;
+    return this._changeListener.claim(uuidToken, listener, {
+      start: () =>
+        this._engine.collection_AddChangeListener(
+          {
+            name: this.scope.database.getUniqueName(),
+            scopeName: this.scope.name,
+            collectionName: this.name,
+            changeListenerToken: uuidToken,
+          },
+          (data, err) => {
+            if (err) {
+              throw err;
+            }
+            this.notifyChangeListeners(data);
           }
-          this.notifyChangeListeners(data);
-        }
-      );
-      this._didStartListener = true;
-
-
-      const cblListenerToken = new ListenerToken(uuidToken, async () => {
-        
-        // calling the remove listener native method 
-        await this._engine.listenerToken_Remove({
-          changeListenerToken: uuidToken
-        })
-
-        this._cblListenerTokensByUuid.delete(uuidToken);
-        this._didStartListener = false;
-
-      });
-
-      this._cblListenerTokensByUuid.set(uuidToken, cblListenerToken);
-
-      return cblListenerToken;
-    } else {
-      throw new Error('Listener already started');
-    }
+        ),
+      // calling the remove listener native method
+      stop: () =>
+        this._engine.listenerToken_Remove({
+          changeListenerToken: uuidToken,
+        }),
+      alreadyStartedMessage: 'Listener already started',
+    });
   }
 
   /**
@@ -1017,7 +1000,7 @@ export class Collection {
    * @private
    */
   private notifyChangeListeners(data: any) {
-    this._changeListener(data);
+    this._changeListener.notify(data);
   }
 
   /**
@@ -1203,18 +1186,12 @@ export class Collection {
     : token.getUuidToken(); // Extract from CBL ListenerToken
 
 
-    // Find the CBL ListenerToken object
-    const cblListenerToken = this._cblListenerTokensByUuid.get(uuidToken);
-
-    if(cblListenerToken){
-      await cblListenerToken.remove();
-    }
-    else {
-      // Fallback: call generic bridge method directly
+    if (!(await this._changeListener.remove(uuidToken))) {
+      // Unknown token: call generic bridge method directly; the active
+      // listener (if any) stays registered.
       await this._engine.listenerToken_Remove({
         changeListenerToken: uuidToken,
       });
-      this._didStartListener = false;
     }
 
 
