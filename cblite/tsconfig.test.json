@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "lib": ["dom", "es2020"],
+    "outDir": "dist-test",
+    "declaration": false,
+    "sourceMap": false
+  },
+  "files": ["test/change-listener-slot.test.ts"]
+}

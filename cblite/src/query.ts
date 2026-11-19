@@ -4,6 +4,7 @@ import { EngineLocator } from './engine-locator';
 import { ResultSet } from './result';
 import { Parameters } from './parameters';
 import { ListenerToken } from './listener-token';
+import { ChangeListenerSlot } from './util/change-listener-slot';
 
 /**
  * A database query. A Query instance can be constructed by calling
@@ -18,14 +19,11 @@ export class Query {
   private _engine: ICoreEngine = EngineLocator.getEngine(EngineLocator.key);
 
   //query change listener support
-  private _changeListener: QueryChangeListener;
-  private _didStartQueryListener: boolean;
-  private _queryListenerTokensByUuid: Map<string, ListenerToken> = new Map();
+  private _changeListener = new ChangeListenerSlot<QueryChangeListener>();
 
   constructor(queryString: string, database: Database) {
     this._queryString = queryString;
     this._database = database;
-    this._didStartQueryListener = false;
   }
 
   /**
@@ -34,45 +32,31 @@ export class Query {
    * @function
    */
   async addChangeListener(listener: QueryChangeListener): Promise<ListenerToken> {
-    this._changeListener = listener;
     const token = this._engine.getUUID();
 
-    if (!this._didStartQueryListener) {
-      await this._engine.query_AddChangeListener(
-        {
-          name: this._database.getUniqueName(),
-          query: this._queryString,
-          parameters: this.parameters.get(),
-          changeListenerToken: token,
-        },
-        (data, err) => {
-          if (err) {
-            throw err;
+    return this._changeListener.claim(token, listener, {
+      start: () =>
+        this._engine.query_AddChangeListener(
+          {
+            name: this._database.getUniqueName(),
+            query: this._queryString,
+            parameters: this.parameters.get(),
+            changeListenerToken: token,
+          },
+          (data, err) => {
+            if (err) {
+              throw err;
+            }
+            this.notifyChangeListeners(data);
           }
-          this.notifyChangeListeners(data);
-        }
-      );
-      this._didStartQueryListener = true;
-
-      // Create ListenerToken wrapper
-      const cblListenerToken = new ListenerToken(token, async () => {
-        // calling the remove listener native method
-        await this._engine.listenerToken_Remove({
-          changeListenerToken: token
-        });
-        
-        this._queryListenerTokensByUuid.delete(token);
-        this._didStartQueryListener = false;
-      });
-
-      this._queryListenerTokensByUuid.set(token, cblListenerToken);
-
-      return cblListenerToken;
-    } else {
-      throw new Error(
-        `Listener for query ${this._queryString} already started`
-      );
-    }
+        ),
+      // calling the remove listener native method
+      stop: () =>
+        this._engine.listenerToken_Remove({
+          changeListenerToken: token,
+        }),
+      alreadyStartedMessage: `Listener for query ${this._queryString} already started`,
+    });
   }
 
   /**
@@ -144,7 +128,7 @@ export class Query {
    */
   private notifyChangeListeners(data: any) {
     const stringData = data.data;
-    this._changeListener({
+    this._changeListener.notify({
       query: this,
       error: data.error,
       results: JSON.parse(stringData),
@@ -161,17 +145,12 @@ export class Query {
       ? token 
       : token.getUuidToken();
 
-    // Find the CBL ListenerToken object
-    const cblListenerToken = this._queryListenerTokensByUuid.get(uuidToken);
-
-    if (cblListenerToken) {
-      await cblListenerToken.remove();
-    } else {
-      // Fallback: call generic bridge method directly
+    if (!(await this._changeListener.remove(uuidToken))) {
+      // Unknown token: call generic bridge method directly; the active
+      // listener (if any) stays registered.
       await this._engine.listenerToken_Remove({
         changeListenerToken: uuidToken
       });
-      this._didStartQueryListener = false;
     }
   }
 
